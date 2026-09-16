@@ -550,8 +550,12 @@
     bar.type = "button";
     bar.className = "fam-bar";
     bar.setAttribute("aria-expanded", "false");
-    bar.style.background = f.dark;
-    bar.style.color = contrastText(f.dark);
+    // "Trắng" would be near-invisible on the page's own light background at its true bead tone,
+    // so the bar itself (not the bead gradient elsewhere) gets pure white + a thin dark edge.
+    var barBg = f.id === "trang" ? "#ffffff" : f.dark;
+    bar.style.background = barBg;
+    bar.style.color = contrastText(barBg);
+    if(f.id === "trang"){ bar.style.border = "1.5px solid #1a1a1a"; }
     bar.innerHTML =
       '<span>' + f.label + '</span>' +
       '<span class="fam-count tnum"></span>' +
