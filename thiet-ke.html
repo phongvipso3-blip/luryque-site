@@ -94,19 +94,24 @@
   }
   .search svg{ flex-shrink:0; opacity:.5; }
   .search input{ border:none; background:transparent; outline:none; width:100%; color:var(--ink); font-size:13.5px; }
-  .chips{ display:flex; flex-wrap:wrap; gap:6px; padding:10px 16px 12px; border-bottom:1px solid var(--line); }
-  .chip{
-    border:1px solid var(--line); background:var(--surface); color:var(--muted);
-    border-radius:999px; padding:6px 12px; font-size:12.5px; font-weight:700; cursor:pointer;
-    transition:background .12s, color .12s, border-color .12s, box-shadow .12s;
+  /* ---------- Family accordion: each color is its own collapsed bar; tap the arrow to reveal
+     that color's beads inline, instead of one shared filter row + one shared grid. ---------- */
+  .fam-list{ flex:1; overflow-y:auto; padding:6px 14px 20px; }
+  .fam-section{ margin-bottom:7px; }
+  .fam-bar{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    border:none; border-radius:11px; padding:13px 15px; font-size:13.5px; font-weight:700; cursor:pointer;
+    transition:filter .12s;
   }
-  .chip:hover{ border-color:var(--accent); color:var(--ink); }
-  .chip.active{
-    background:var(--accent);
-    border-color:transparent; color:var(--on-accent); box-shadow:var(--shadow);
-  }
+  .fam-bar:hover{ filter:brightness(1.07); }
+  .fam-bar .fam-count{ font-weight:600; opacity:.85; margin-right:auto; margin-left:8px; font-size:12px; }
+  .fam-bar .chev{ transition:transform .2s ease; flex-shrink:0; }
+  .fam-bar[aria-expanded="true"] .chev{ transform:rotate(180deg); }
+  .fam-panel{ max-height:0; overflow:hidden; transition:max-height .25s ease; }
+  .fam-panel[data-open="true"]{ max-height:3000px; }
+  .fam-section.no-match{ display:none; }
 
-  .catalog-grid{ flex:1; overflow-y:auto; padding:12px 14px 20px; display:grid; grid-template-columns:1fr 1fr; gap:10px; align-content:start; }
+  .catalog-grid{ padding:10px 2px 14px; display:grid; grid-template-columns:1fr 1fr; gap:10px; align-content:start; }
   .bead-card{
     position:relative;
     border:1px solid var(--line); background:var(--bg); border-radius:14px;
@@ -288,8 +293,7 @@
         <input id="searchInput" type="text" placeholder="Tìm tên hạt…" aria-label="Tìm hạt">
       </div>
     </div>
-    <div class="chips" id="chipRow"></div>
-    <div class="catalog-grid" id="catalogGrid"></div>
+    <div class="fam-list" id="famList"></div>
   </aside>
 
   <main class="stage">
@@ -443,6 +447,13 @@
 
   var fmtVND = new Intl.NumberFormat("vi-VN");
   function money(n){ return fmtVND.format(n) + " đ"; }
+  // Picks readable chip text (near-black or white) for a given background hex — YIQ perceived brightness.
+  function contrastText(hex){
+    var h = hex.replace("#","");
+    var r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+    var yiq = (r*299 + g*587 + b*114) / 1000;
+    return yiq >= 150 ? "#161b2e" : "#ffffff";
+  }
   function swatchBackground(famId){
     var f = FMAP[famId];
     return "radial-gradient(circle at 32% 26%, rgba(255,255,255,.9), rgba(255,255,255,0) 38%)," +
@@ -481,7 +492,6 @@
   }
 
   // ---------- State ----------
-  var activeFamily = "all";
   var searchQ = "";
   var ring = [];       // array of {uid, id}
   var nextUid = 1;
@@ -529,39 +539,71 @@
     return { r:r, items:items };
   }
 
-  // ---------- Catalog render ----------
-  var chipRow = document.getElementById("chipRow");
-  var allChip = document.createElement("button");
-  allChip.className = "chip active"; allChip.textContent = "Tất cả"; allChip.dataset.fam = "all";
-  chipRow.appendChild(allChip);
+  // ---------- Family accordion (catalog) ----------
+  // Each color is its own collapsed bar by default; tapping the arrow reveals that color's
+  // beads inline underneath it. Independent toggles (not a single-open accordion) so more than
+  // one color can stay open at once for comparing.
+  var famList = document.getElementById("famList");
+  var openFamilies = {};   // famId -> bool, manual expand/collapse state
+  var famSectionEls = {};  // famId -> {section, bar, panel, grid}
+
   FAMILIES.forEach(function(f){
-    var b = document.createElement("button");
-    b.className = "chip"; b.textContent = f.label; b.dataset.fam = f.id;
-    chipRow.appendChild(b);
-  });
-  chipRow.addEventListener("click", function(e){
-    var chip = e.target.closest(".chip");
-    if(!chip) return;
-    activeFamily = chip.dataset.fam;
-    Array.prototype.forEach.call(chipRow.children, function(c){ c.classList.toggle("active", c===chip); });
-    renderCatalog();
+    var section = document.createElement("div");
+    section.className = "fam-section";
+
+    var bar = document.createElement("button");
+    bar.type = "button";
+    bar.className = "fam-bar";
+    bar.setAttribute("aria-expanded", "false");
+    bar.style.background = f.dark;
+    bar.style.color = contrastText(f.dark);
+    bar.innerHTML =
+      '<span>' + f.label + '</span>' +
+      '<span class="fam-count tnum"></span>' +
+      '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m6 9 6 6 6-6"/></svg>';
+
+    var panel = document.createElement("div");
+    panel.className = "fam-panel";
+    panel.dataset.open = "false";
+    var grid = document.createElement("div");
+    grid.className = "catalog-grid";
+    panel.appendChild(grid);
+
+    bar.addEventListener("click", function(){
+      setFamilyOpen(f.id, panel.dataset.open !== "true");
+    });
+
+    section.appendChild(bar);
+    section.appendChild(panel);
+    famList.appendChild(section);
+
+    famSectionEls[f.id] = { section:section, bar:bar, panel:panel, grid:grid };
   });
 
-  var searchInput = document.getElementById("searchInput");
-  searchInput.addEventListener("input", function(){ searchQ = searchInput.value.trim().toLowerCase(); renderCatalog(); });
-
-  var catalogGrid = document.getElementById("catalogGrid");
-  function renderCatalog(){
-    var items = CATALOG.filter(function(c){
-      if(activeFamily !== "all" && c.fam !== activeFamily) return false;
+  function familyItems(famId){
+    return CATALOG.filter(function(c){
+      if(c.fam !== famId) return false;
       if(searchQ && c.name.toLowerCase().indexOf(searchQ) === -1) return false;
       return true;
     });
-    catalogGrid.innerHTML = "";
+  }
+
+  function setFamilyOpen(famId, open){
+    openFamilies[famId] = open;
+    var el = famSectionEls[famId];
+    el.panel.dataset.open = open ? "true" : "false";
+    el.bar.setAttribute("aria-expanded", open ? "true" : "false");
+    if(open) renderFamilyGrid(famId);
+  }
+
+  function renderFamilyGrid(famId){
+    var el = famSectionEls[famId];
+    var items = familyItems(famId);
+    el.grid.innerHTML = "";
     if(items.length === 0){
       var e = document.createElement("div");
       e.className = "empty-catalog"; e.textContent = "Không tìm thấy hạt phù hợp.";
-      catalogGrid.appendChild(e);
+      el.grid.appendChild(e);
       return;
     }
     items.forEach(function(c){
@@ -579,8 +621,28 @@
       card.querySelector(".info-btn").addEventListener("click", function(ev){ ev.stopPropagation(); openModal(c.id); });
       card.addEventListener("click", function(){ addBead(c.id); });
       card.addEventListener("keydown", function(ev){ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); addBead(c.id); } });
-      catalogGrid.appendChild(card);
+      el.grid.appendChild(card);
     });
+  }
+
+  var searchInput = document.getElementById("searchInput");
+  searchInput.addEventListener("input", function(){ searchQ = searchInput.value.trim().toLowerCase(); renderCatalog(); });
+
+  function renderCatalog(){
+    FAMILIES.forEach(function(f){
+      var n = familyItems(f.id).length;
+      var el = famSectionEls[f.id];
+      el.bar.querySelector(".fam-count").textContent = n > 0 ? String(n) : "";
+      el.section.classList.toggle("no-match", n === 0 && !!searchQ);
+      if(openFamilies[f.id]) renderFamilyGrid(f.id);
+    });
+    // While searching, auto-open every color that has a match so results show without extra
+    // taps; clearing the search leaves sections exactly as the user last left them.
+    if(searchQ){
+      FAMILIES.forEach(function(f){
+        if(!openFamilies[f.id] && familyItems(f.id).length > 0) setFamilyOpen(f.id, true);
+      });
+    }
   }
 
   // ---------- Ring render ----------
