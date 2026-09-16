@@ -1,0 +1,835 @@
+<title>Chuỗi Ngọc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --surface:#ffffff;
+    --surface-2:#eef1f9;
+    --ink:#161b2e;
+    --muted:#5f6780;
+    --line:#e1e5f0;
+    --accent:#4658e5;
+    --accent-2:#ffb020;
+    --price:#b8790a;
+    --good:#16a34a;
+    --on-accent:#ffffff;
+    --shadow: 0 1px 2px rgba(22,27,46,.06), 0 10px 26px -14px rgba(22,27,46,.22);
+    color-scheme: light;
+  }
+  /* Fixed light theme by request — intentionally ignores prefers-color-scheme / OS dark mode.
+     Two-accent system: --accent (indigo blue) marks anything actionable/interactive; --accent-2 /
+     --price (gold) is reserved for value — the running price and a small "sparkle" on the total —
+     so it reads as jewelry, not decoration. */
+
+  *{box-sizing:border-box;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"DM Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size:14px;
+    line-height:1.5;
+  }
+  h1,h2,h3,.display{ font-family:"Sora", "DM Sans", sans-serif; text-wrap:balance; }
+  .tnum{ font-variant-numeric: tabular-nums; }
+  button{ font-family:inherit; }
+
+  .app{
+    display:grid;
+    grid-template-areas:
+      "top top top"
+      "catalog stage summary";
+    grid-template-columns: 296px 1fr 320px;
+    grid-template-rows: auto 1fr;
+    min-height:100vh;
+    gap:0;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    grid-area:top;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:14px 20px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .brand .mark{
+    font-family:"Sora"; font-weight:800; font-size:18px; letter-spacing:-.01em; color:var(--accent);
+  }
+  .brand .tag{
+    font-size:10.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.08em;
+    padding:4px 9px; border-radius:999px;
+    background:var(--surface-2); color:var(--accent);
+    white-space:nowrap;
+  }
+  .title-field{ flex:1; min-width:0; }
+  .title-field input{
+    width:100%; background:transparent; border:none; border-bottom:1px solid transparent;
+    color:var(--ink); font-family:"Sora"; font-weight:600; font-size:15px; padding:5px 2px;
+  }
+  .title-field input:hover{ border-bottom-color:var(--line); }
+  .title-field input:focus{ outline:none; border-bottom-color:var(--accent); }
+  .topbar .note{ font-size:12px; color:var(--muted); flex-shrink:0; max-width:280px; text-align:right; }
+
+  /* ---------- Catalog rail ---------- */
+  .rail-catalog{
+    grid-area:catalog;
+    border-right:1px solid var(--line);
+    background:var(--surface);
+    display:flex; flex-direction:column;
+    min-height:0; max-height:calc(100vh - 61px);
+  }
+  .rail-head{ padding:16px 16px 10px; }
+  .rail-head h2{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 10px; }
+  .search{
+    display:flex; align-items:center; gap:8px;
+    border:1px solid var(--line); border-radius:10px; padding:9px 11px; background:var(--bg);
+  }
+  .search svg{ flex-shrink:0; opacity:.5; }
+  .search input{ border:none; background:transparent; outline:none; width:100%; color:var(--ink); font-size:13.5px; }
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; padding:10px 16px 12px; border-bottom:1px solid var(--line); }
+  .chip{
+    border:1px solid var(--line); background:var(--surface); color:var(--muted);
+    border-radius:999px; padding:6px 12px; font-size:12.5px; font-weight:700; cursor:pointer;
+    transition:background .12s, color .12s, border-color .12s, box-shadow .12s;
+  }
+  .chip:hover{ border-color:var(--accent); color:var(--ink); }
+  .chip.active{
+    background:var(--accent);
+    border-color:transparent; color:var(--on-accent); box-shadow:var(--shadow);
+  }
+
+  .catalog-grid{ flex:1; overflow-y:auto; padding:12px 14px 20px; display:grid; grid-template-columns:1fr 1fr; gap:10px; align-content:start; }
+  .bead-card{
+    position:relative;
+    border:1px solid var(--line); background:var(--bg); border-radius:14px;
+    padding:11px 9px 9px; cursor:pointer; text-align:center;
+    transition:transform .1s, border-color .12s, box-shadow .12s;
+  }
+  .bead-card:hover{ border-color:var(--accent); transform:translateY(-1px); box-shadow:var(--shadow); }
+  .bead-card:active{ transform:translateY(0); }
+  .info-btn{
+    position:absolute; top:6px; right:6px; width:19px; height:19px; border-radius:50%;
+    border:1px solid var(--line); background:var(--surface); color:var(--muted);
+    font-size:11px; font-weight:800; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    opacity:1; transition:opacity .15s ease, border-color .12s, color .12s;
+  }
+  .info-btn:hover{ border-color:var(--accent); color:var(--accent); }
+  /* Desktop/mouse: keep cards clean, reveal "?" on hover (or keyboard focus). Touch devices have no
+     hover, so the media query below never applies there and the button stays visible for tapping. */
+  @media (hover:hover) and (pointer:fine){
+    .info-btn{ opacity:0; }
+    .bead-card:hover .info-btn,
+    .bead-card:focus-within .info-btn,
+    .info-btn:focus-visible{ opacity:1; }
+  }
+
+  .bead-swatch{
+    width:44px; height:44px; margin:2px auto 9px; flex-shrink:0;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,.18), inset 0 3px 5px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.15);
+  }
+  .bead-swatch.shape-oval{ width:54px; height:32px; }
+  .bead-swatch.shape-cube{ width:38px; height:38px; }
+  .bead-swatch.shape-disc{ width:52px; height:24px; }
+  .bead-swatch.shape-drop{ width:36px; height:44px; }
+  .bead-swatch.shape-tube{ width:58px; height:26px; }
+  .bead-swatch.shape-charm{ width:30px; height:48px; }
+
+  .shape-round, .shape-oval, .shape-disc{ border-radius:50%; }
+  .shape-cube{ border-radius:20%; }
+  .shape-tube{ border-radius:40%; }
+  .shape-drop{ border-radius:58% 58% 58% 6%; }
+  .shape-star{ border-radius:0; clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
+  .shape-charm{ box-shadow:none; background:none; }
+
+  .bead-name{ font-size:12px; font-weight:700; line-height:1.25; min-height:2.4em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .bead-mm{ font-size:10.5px; color:var(--muted); margin-top:3px; }
+  .bead-price{ margin-top:5px; }
+  .bead-price .now{ font-weight:800; font-size:12.5px; color:var(--price); }
+  .bead-price .was{ font-size:10.5px; color:var(--muted); text-decoration:line-through; margin-left:4px; }
+  .empty-catalog{ grid-column:1/-1; padding:30px 10px; text-align:center; color:var(--muted); font-size:13px; }
+
+  /* ---------- Stage ---------- */
+  .stage{
+    grid-area:stage; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:24px; min-height:0;
+    background: radial-gradient(ellipse at 50% 0%, var(--surface-2), transparent 62%), var(--bg);
+  }
+  .stage-toolbar{ position:absolute; top:16px; left:16px; right:16px; display:flex; justify-content:space-between; align-items:flex-start; pointer-events:none; }
+  .stage-toolbar > *{ pointer-events:auto; }
+  .stat-pill{ background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:7px 13px; font-size:12px; color:var(--muted); box-shadow:var(--shadow); }
+  .stat-pill b{ color:var(--ink); font-weight:800; }
+  .icon-btn{ width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); box-shadow:var(--shadow); }
+  .icon-btn:hover{ color:var(--price); border-color:var(--price); }
+
+  .ring-wrap{ width:min(440px, 100%); aspect-ratio:1/1; position:relative; display:flex; align-items:center; justify-content:center; }
+  .ring-inner{ position:relative; width:100%; height:100%; }
+  .ring-guide{ position:absolute; top:50%; left:50%; border:1.5px dashed var(--line); border-radius:50%; transform:translate(-50%,-50%); transition:width .25s ease, height .25s ease; }
+  .placed-bead{
+    position:absolute; top:50%; left:50%;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,.2), inset 0 3px 5px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.18);
+    cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none;
+    transition: transform .18s cubic-bezier(.2,.8,.3,1.15), width .2s, height .2s;
+  }
+  .placed-bead:hover{ filter:brightness(1.07); z-index:4; }
+  .placed-bead.dragging{ cursor:grabbing; z-index:10; filter:brightness(1.04); box-shadow: inset 0 -4px 8px rgba(0,0,0,.2), inset 0 3px 5px rgba(255,255,255,.35), 0 14px 28px rgba(0,0,0,.3); transition:none; }
+  .placed-bead:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .empty-hint{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; color:var(--muted); font-size:13px; width:190px; }
+  .empty-hint .display{ font-size:16px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+  .ring-tip{ margin-top:14px; font-size:12px; color:var(--muted); text-align:center; min-height:16px; }
+
+  .zoom-row{ margin-top:10px; display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 14px; box-shadow:var(--shadow); }
+  .zoom-row input[type=range]{ width:110px; accent-color:var(--accent); }
+  .zoom-row button{ width:26px; height:26px; border-radius:50%; border:1px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer; font-size:14px; line-height:1; }
+  .zoom-row span{ font-size:11.5px; color:var(--muted); width:38px; text-align:center; }
+
+  /* ---------- Summary rail ---------- */
+  .rail-summary{ grid-area:summary; border-left:1px solid var(--line); background:var(--surface); display:flex; flex-direction:column; min-height:0; max-height:calc(100vh - 61px); }
+  .summary-scroll{ flex:1; overflow-y:auto; padding:16px; }
+  .code-box{ margin-bottom:16px; }
+  .code-box label{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); display:block; margin-bottom:6px; }
+  .code-row{ display:flex; gap:6px; }
+  .code-row input{ flex:1; min-width:0; border:1px solid var(--line); border-radius:9px; padding:8px 9px; background:var(--bg); color:var(--ink); font-size:12px; font-family:ui-monospace, monospace; }
+  .code-row button{ border:none; background:var(--accent); color:var(--on-accent); border-radius:9px; width:34px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .code-msg{ font-size:11.5px; margin-top:5px; min-height:14px; }
+  .code-msg.ok{ color:var(--good); } .code-msg.err{ color:var(--price); }
+
+  .wrist-card{ background:var(--surface-2); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+  .wrist-card .lbl{ font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .wrist-card .val{ font-family:"Sora"; font-size:19px; font-weight:800; }
+
+  .overview-card{ background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px; }
+  .ov-count-row{ display:flex; align-items:baseline; gap:6px; margin-bottom:10px; }
+  .ov-count{ font-family:"Sora"; font-size:26px; font-weight:800; }
+  .ov-count-lbl{ font-size:12.5px; color:var(--muted); }
+  .ov-swatches{ display:flex; flex-wrap:wrap; gap:6px; }
+  .ov-dot{ width:22px; height:22px; border-radius:50%; box-shadow: inset 0 -2px 4px rgba(0,0,0,.2), inset 0 2px 2px rgba(255,255,255,.35); cursor:default; }
+  .ov-empty{ font-size:12.5px; color:var(--muted); }
+
+  .total-row{ display:flex; justify-content:space-between; align-items:baseline; padding-top:12px; border-top:1.5px solid var(--ink); }
+  .total-row .lbl{ font-size:13px; color:var(--muted); }
+  .total-row .val{ font-family:"Sora"; font-size:23px; font-weight:800; color:var(--price); text-shadow:0 0 18px rgba(255,176,32,.28); }
+
+  .summary-actions{ padding:14px 16px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:8px; }
+  .btn{ border-radius:999px; padding:12px 14px; font-size:13.5px; font-weight:700; cursor:pointer; text-align:center; border:1px solid transparent; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .btn-primary{ background:var(--accent); color:var(--on-accent); box-shadow:var(--shadow); }
+  .btn-primary:hover{ filter:brightness(1.1); }
+  .btn-ghost{ background:transparent; border-color:var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--accent); color:var(--accent); }
+
+  .save-card{ margin-top:2px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:12px; color:var(--muted); display:none; }
+  .save-card.show{ display:block; }
+  .save-card strong{ color:var(--ink); }
+
+  /* ---------- Info modal ---------- */
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(20,16,28,.5); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; }
+  .modal-backdrop[hidden]{ display:none; }
+  .modal-card{ position:relative; background:var(--surface); border-radius:18px; padding:22px; width:min(420px, 100%); box-shadow:0 24px 60px -20px rgba(0,0,0,.45); }
+  .modal-close{ position:absolute; top:12px; right:12px; width:28px; height:28px; border-radius:50%; border:1px solid var(--line); background:var(--bg); color:var(--muted); font-size:16px; cursor:pointer; }
+  .modal-card h3{ font-size:19px; font-weight:800; margin:0 0 2px; padding-right:24px; }
+  .modal-sub{ font-size:12.5px; color:var(--muted); margin:0 0 16px; }
+  .modal-gallery{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+  .gallery-tile{ display:flex; flex-direction:column; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px 6px; }
+  .gallery-shape{ width:40px; height:40px; box-shadow: inset 0 -4px 8px rgba(0,0,0,.2), inset 0 3px 5px rgba(255,255,255,.35), 0 1px 3px rgba(0,0,0,.15); }
+  .gallery-shape.shape-oval{ width:48px; height:29px; }
+  .gallery-shape.shape-cube{ width:34px; height:34px; }
+  .gallery-shape.shape-disc{ width:46px; height:21px; }
+  .gallery-shape.shape-drop{ width:32px; height:40px; }
+  .gallery-shape.shape-tube{ width:50px; height:23px; }
+  .gallery-shape.shape-charm{ width:26px; height:42px; transition:transform .2s ease; }
+  .gallery-tile span{ font-size:10.5px; color:var(--muted); text-align:center; }
+  .modal-note{ font-size:11.5px; color:var(--muted); margin:0; text-align:center; }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 860px){
+    /* Catalog first: on mobile "pick a bead" is the natural first action, stage shows the result,
+       summary/checkout comes last — a shopping-flow order, not just the desktop columns stacked as-is. */
+    .app{ grid-template-areas: "top" "catalog" "stage" "summary"; grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
+    .topbar{ flex-wrap:wrap; row-gap:8px; }
+    .topbar .note{ display:none; }
+    .title-field{ flex:1 1 100%; }
+    .rail-catalog, .rail-summary{ max-height:none; border:none; border-top:1px solid var(--line); }
+    .rail-catalog{ border-top:none; }
+    .catalog-grid{ max-height:380px; }
+    .stage{ min-height:min(70vw, 420px); padding:16px; }
+    /* Touch targets grow a bit on mobile — the "?" is always visible here (no hover), so it must be easy to tap. */
+    .info-btn{ width:25px; height:25px; font-size:12.5px; }
+    .icon-btn{ width:38px; height:38px; }
+    .ov-dot{ width:25px; height:25px; }
+  }
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <a class="brand" href="index.html" style="text-decoration:none;">
+      <span class="mark">Chuỗi Ngọc</span>
+      <span class="tag">Demo nội bộ</span>
+    </a>
+    <div class="title-field">
+      <input id="designTitle" type="text" value="Chưa đặt tên thiết kế" maxlength="60" aria-label="Tên thiết kế">
+    </div>
+    <div class="note">Hạt là mẫu dựng bằng màu — sẽ thay bằng ảnh chụp thật sau.</div>
+  </header>
+
+  <aside class="rail-catalog">
+    <div class="rail-head">
+      <h2>Lọc theo loại hạt</h2>
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="searchInput" type="text" placeholder="Tìm tên hạt…" aria-label="Tìm hạt">
+      </div>
+    </div>
+    <div class="chips" id="chipRow"></div>
+    <div class="catalog-grid" id="catalogGrid"></div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-toolbar">
+      <div class="stat-pill"><b id="pillCount">0</b> hạt trên chuỗi</div>
+      <button class="icon-btn" id="clearBtn" title="Xoá hết hạt trên chuỗi" aria-label="Xoá hết">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-13"/></svg>
+      </button>
+    </div>
+    <div class="ring-wrap">
+      <div class="ring-inner" id="ringInner">
+        <div class="ring-guide" id="ringGuide"></div>
+        <div class="empty-hint" id="emptyHint">
+          <div class="display">Chuỗi trống</div>
+          Bấm vào 1 viên hạt bên trái để bắt đầu xâu chuỗi
+        </div>
+      </div>
+    </div>
+    <div class="ring-tip" id="ringTip"></div>
+    <div class="zoom-row">
+      <button id="zoomOut" aria-label="Thu nhỏ">–</button>
+      <input id="zoomRange" type="range" min="70" max="160" value="100" step="5" aria-label="Mức thu phóng">
+      <button id="zoomIn" aria-label="Phóng to">+</button>
+      <span id="zoomLabel" class="tnum">100%</span>
+    </div>
+  </main>
+
+  <aside class="rail-summary">
+    <div class="summary-scroll">
+      <div class="code-box">
+        <label for="codeInput">Dán mã thiết kế</label>
+        <div class="code-row">
+          <input id="codeInput" type="text" placeholder="Dán mã đã sao chép trước đó…">
+          <button id="loadCodeBtn" title="Tải thiết kế từ mã" aria-label="Tải thiết kế">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+        <div class="code-msg" id="codeMsg"></div>
+      </div>
+
+      <div class="wrist-card">
+        <div>
+          <div class="lbl">Chu vi ước tính</div>
+          <div class="val tnum" id="wristVal">— cm</div>
+        </div>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".5"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/></svg>
+      </div>
+
+      <div class="overview-card">
+        <div class="ov-count-row">
+          <span class="ov-count tnum" id="ovCount">0</span>
+          <span class="ov-count-lbl">hạt trên chuỗi</span>
+        </div>
+        <div class="ov-swatches" id="overviewSwatches"></div>
+        <div class="ov-empty" id="ovEmpty">Chưa có hạt nào được chọn.</div>
+      </div>
+
+      <div class="total-row">
+        <span class="lbl">Tổng cộng</span>
+        <span class="val tnum" id="totalVal">0 đ</span>
+      </div>
+    </div>
+    <div class="summary-actions">
+      <button class="btn btn-ghost" id="inspireBtn">✦ Gợi ý phối ngẫu nhiên</button>
+      <button class="btn btn-primary" id="saveBtn">Lưu &amp; lấy mã thiết kế</button>
+      <div class="save-card" id="saveCard"></div>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalClose" aria-label="Đóng">×</button>
+    <h3 id="modalTitle"></h3>
+    <p class="modal-sub" id="modalSub"></p>
+    <div class="modal-gallery" id="modalGallery"></div>
+    <p class="modal-note">Ảnh minh hoạ dựng bằng màu — sẽ thay bằng ảnh chụp thực tế khi có.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Families (material colors — placeholder swatches, no external images) ----------
+  var FAMILIES = [
+    {id:"trang", label:"Trắng", light:"#faf7f4", dark:"#d3c9c2"},
+    {id:"hong",  label:"Hồng",  light:"#f7cdd9", dark:"#c96f8d"},
+    {id:"do",    label:"Đỏ",    light:"#e08a86", dark:"#7c2222"},
+    {id:"vang",  label:"Vàng",  light:"#f5d888", dark:"#b6811a"},
+    {id:"la",    label:"Xanh lá", light:"#a7ddb6", dark:"#1f6b3a"},
+    {id:"duong", label:"Xanh dương", light:"#aecdea", dark:"#2c5f92"},
+    {id:"tim",   label:"Tím",   light:"#d0b6e6", dark:"#5c3480"},
+    {id:"den",   label:"Đen",   light:"#726c78", dark:"#0d0b10"},
+    {id:"kim",   label:"Kim loại", light:"#f6e3ab", dark:"#a9781f"},
+    {id:"bac",   label:"Bạc",   light:"#f2f1f4", dark:"#8b8d93"}
+  ];
+  var FMAP = {}; FAMILIES.forEach(function(f){ FMAP[f.id]=f; });
+
+  // ---------- Shapes (geometry via CSS classes shape-*; numbers here only drive layout math) ----------
+  // "charm" is drawn as an SVG glyph (attachment loop at its own top, pendant body at its own
+  // bottom) instead of a gradient sphere — see charmSvgMarkup().
+  var SHAPE_DEF = {
+    round:{ wMul:1,    hMul:1,    footMul:1    },
+    oval: { wMul:1.55, hMul:0.85, footMul:1.55 },
+    cube: { wMul:0.92, hMul:0.92, footMul:0.92 },
+    disc: { wMul:1.3,  hMul:0.5,  footMul:0.55 },
+    star: { wMul:1.15, hMul:1.15, footMul:1.0  },
+    drop: { wMul:1.0,  hMul:1.15, footMul:1.0  },
+    tube: { wMul:2.15, hMul:0.8,  footMul:2.05 },
+    charm:{ wMul:1.0,  hMul:1.6,  footMul:0.6  }
+  };
+
+  var CATALOG = [
+    {id:"agate-white",  name:"Mã Não Trắng",              fam:"trang", shape:"round", mm:8,  price:24000, was:32000},
+    {id:"pearl-white",  name:"Ngọc Trai Trắng",           fam:"trang", shape:"round", mm:6,  price:26000, was:35000},
+    {id:"quartz-rose",  name:"Thạch Anh Hồng",            fam:"hong",  shape:"round", mm:10, price:32000, was:43000},
+    {id:"garnet-red",   name:"Garnet Đỏ",                 fam:"do",    shape:"round", mm:6,  price:26000, was:35000},
+    {id:"agate-red",    name:"Mã Não Đỏ",                 fam:"do",    shape:"round", mm:10, price:32000, was:43000},
+    {id:"citrine",      name:"Citrine Vàng",              fam:"vang",  shape:"round", mm:8,  price:34000, was:46000},
+    {id:"tigereye",     name:"Mắt Hổ Vàng",               fam:"vang",  shape:"round", mm:10, price:32000, was:43000},
+    {id:"aventurine",   name:"Aventurine Xanh",           fam:"la",    shape:"round", mm:10, price:32000, was:43000},
+    {id:"amazonite",    name:"Amazonite Xanh Lam",        fam:"duong", shape:"round", mm:8,  price:24000, was:32000},
+    {id:"amethyst",     name:"Thạch Anh Tím",             fam:"tim",   shape:"round", mm:8,  price:34000, was:46000},
+    {id:"sugilite",     name:"Sugilite Tím",              fam:"tim",   shape:"round", mm:6,  price:26000, was:35000},
+    {id:"obsidian",     name:"Obsidian Đen",              fam:"den",   shape:"round", mm:10, price:32000, was:43000},
+    {id:"onyx",         name:"Onyx Đen",                  fam:"den",   shape:"round", mm:8,  price:24000, was:32000},
+    {id:"spacer-round", name:"Charm Tròn Vàng",           fam:"kim",   shape:"round", mm:4,  price:8000,  was:12000},
+
+    {id:"quartz-rose-rice", name:"Thạch Anh Hồng Dạng Gạo", fam:"hong", shape:"oval", mm:8, price:30000, was:40000},
+    {id:"jade-rice",        name:"Ngọc Bích Dạng Gạo",      fam:"la",   shape:"oval", mm:8, price:30000, was:40000},
+
+    {id:"amethyst-cube", name:"Thạch Anh Tím Vuông", fam:"tim",   shape:"cube", mm:8, price:36000, was:48000},
+    {id:"lapis-cube",    name:"Lapis Lazuli Vuông",  fam:"duong", shape:"cube", mm:8, price:40000, was:53000},
+
+    {id:"clay-white-disc", name:"Đĩa Sứ Trắng",   fam:"trang", shape:"disc", mm:6, price:14000, was:19000},
+    {id:"onyx-disc",       name:"Đĩa Onyx Đen",   fam:"den",   shape:"disc", mm:6, price:18000, was:24000},
+
+    {id:"star-gold", name:"Charm Ngôi Sao Vàng", fam:"kim", shape:"star", mm:8, price:15000, was:20000},
+
+    {id:"garnet-drop",      name:"Garnet Giọt Nước",           fam:"do",   shape:"drop", mm:10, price:38000, was:50000},
+    {id:"quartz-rose-drop", name:"Thạch Anh Hồng Giọt Nước",   fam:"hong", shape:"drop", mm:10, price:36000, was:48000},
+
+    {id:"tube-gold", name:"Ống Vàng Nhỏ",  fam:"kim", shape:"tube", mm:6, price:12000, was:16000},
+    {id:"tube-onyx", name:"Ống Onyx Nhỏ",  fam:"den", shape:"tube", mm:6, price:16000, was:21000},
+
+    {id:"charm-key",   name:"Charm Chìa Khoá Bạc", fam:"bac", shape:"charm", charmType:"key",   mm:11, price:45000, was:60000},
+    {id:"charm-heart", name:"Charm Trái Tim Vàng", fam:"kim", shape:"charm", charmType:"heart", mm:10, price:42000, was:56000}
+  ];
+  var CMAP = {}; CATALOG.forEach(function(c){ CMAP[c.id]=c; });
+
+  var fmtVND = new Intl.NumberFormat("vi-VN");
+  function money(n){ return fmtVND.format(n) + " đ"; }
+  function swatchBackground(famId){
+    var f = FMAP[famId];
+    return "radial-gradient(circle at 32% 26%, rgba(255,255,255,.9), rgba(255,255,255,0) 38%)," +
+      "radial-gradient(circle at 68% 74%, rgba(0,0,0,.28), rgba(0,0,0,0) 48%)," +
+      "radial-gradient(circle at 50% 45%, " + f.light + ", " + f.dark + " 88%)";
+  }
+  function charmSvgMarkup(type, famId){
+    var f = FMAP[famId];
+    var svgOpen = '<svg viewBox="0 0 40 64" width="100%" height="100%" style="display:block;overflow:visible;">';
+    if(type === "key"){
+      return svgOpen +
+        '<circle cx="20" cy="15" r="10" fill="none" stroke="' + f.dark + '" stroke-width="5"/>' +
+        '<circle cx="20" cy="15" r="10" fill="none" stroke="' + f.light + '" stroke-width="1.4" opacity=".65"/>' +
+        '<rect x="17" y="25" width="6" height="27" rx="1.5" fill="' + f.dark + '"/>' +
+        '<rect x="23" y="42" width="7" height="5" fill="' + f.dark + '"/>' +
+        '<rect x="23" y="50" width="5" height="5" fill="' + f.dark + '"/>' +
+        '</svg>';
+    }
+    return svgOpen +
+      '<circle cx="20" cy="9" r="6" fill="none" stroke="' + f.dark + '" stroke-width="3"/>' +
+      '<line x1="20" y1="15" x2="20" y2="27" stroke="' + f.dark + '" stroke-width="2.5"/>' +
+      '<path d="M20 55 C 7 44, 5 33, 14 31 C 18 30, 20 33.5, 20 36 C 20 33.5, 22 30, 26 31 C 35 33, 33 44, 20 55 Z" fill="' + f.dark + '"/>' +
+      '<path d="M20 55 C 7 44, 5 33, 14 31 C 18 30, 20 33.5, 20 36" fill="none" stroke="' + f.light + '" stroke-width="1" opacity=".55"/>' +
+      '</svg>';
+  }
+  // Applies a catalog item's visual to a swatch/placed-bead/gallery element — gradient sphere for
+  // regular beads, an SVG glyph for charms. Reused across all 3 render contexts so they stay in sync.
+  function applyBeadVisual(el, c){
+    if(c.shape === "charm"){
+      el.style.background = "none";
+      el.innerHTML = charmSvgMarkup(c.charmType, c.fam);
+    } else {
+      el.style.background = swatchBackground(c.fam);
+      el.innerHTML = "";
+    }
+  }
+
+  // ---------- State ----------
+  var activeFamily = "all";
+  var searchQ = "";
+  var ring = [];       // array of {uid, id}
+  var nextUid = 1;
+  var beadEls = {};    // uid -> DOM element (stable across renders, required for smooth drag)
+  var userScale = 1;
+  var dragState = null;
+
+  var PX_PER_MM = 5.6;
+  var MIN_R = 72, MAX_R = 188, DEFAULT_R = 108;
+
+  function normAngle(a){
+    var TWO_PI = Math.PI*2, START = -Math.PI/2;
+    var v = (a - START) % TWO_PI;
+    if(v < 0) v += TWO_PI;
+    return START + v;
+  }
+
+  // Pure layout function — used for the live ring AND to preview drag-target order.
+  function computeLayout(list){
+    if(list.length === 0) return { r: DEFAULT_R, items: [] };
+    var meta = list.map(function(b){
+      var c = CMAP[b.id], sd = SHAPE_DEF[c.shape], d0 = c.mm * PX_PER_MM;
+      return { uid:b.uid, id:b.id, sd:sd, d0:d0, foot0: d0 * sd.footMul };
+    });
+    var circumference = meta.reduce(function(s,m){ return s + m.foot0; }, 0);
+    var rawR = circumference / (2*Math.PI);
+    var r = Math.max(MIN_R, Math.min(MAX_R, rawR));
+    var fit = rawR > MAX_R ? MAX_R / rawR : 1;
+    var angle = -Math.PI/2;
+    var items = meta.map(function(m){
+      var foot = m.foot0 * fit;
+      var half = (foot/2) / r;
+      angle += half;
+      var a = angle;
+      var x = Math.cos(a) * r, y = Math.sin(a) * r;
+      angle += half;
+      var d = m.d0 * fit;
+      // Rotate every bead to match its position on the string: elongated shapes (oval/tube/disc)
+      // end up lying tangent to the ring's curve, and charms swing with their attachment loop
+      // toward the string and their pendant body pointing outward — see charm authoring convention
+      // in charmSvgMarkup (loop at local top, body at local bottom).
+      var rot = (a * 180 / Math.PI) - 90;
+      return { uid:m.uid, id:m.id, angle:a, x:x, y:y, w:d*m.sd.wMul, h:d*m.sd.hMul, rot:rot };
+    });
+    return { r:r, items:items };
+  }
+
+  // ---------- Catalog render ----------
+  var chipRow = document.getElementById("chipRow");
+  var allChip = document.createElement("button");
+  allChip.className = "chip active"; allChip.textContent = "Tất cả"; allChip.dataset.fam = "all";
+  chipRow.appendChild(allChip);
+  FAMILIES.forEach(function(f){
+    var b = document.createElement("button");
+    b.className = "chip"; b.textContent = f.label; b.dataset.fam = f.id;
+    chipRow.appendChild(b);
+  });
+  chipRow.addEventListener("click", function(e){
+    var chip = e.target.closest(".chip");
+    if(!chip) return;
+    activeFamily = chip.dataset.fam;
+    Array.prototype.forEach.call(chipRow.children, function(c){ c.classList.toggle("active", c===chip); });
+    renderCatalog();
+  });
+
+  var searchInput = document.getElementById("searchInput");
+  searchInput.addEventListener("input", function(){ searchQ = searchInput.value.trim().toLowerCase(); renderCatalog(); });
+
+  var catalogGrid = document.getElementById("catalogGrid");
+  function renderCatalog(){
+    var items = CATALOG.filter(function(c){
+      if(activeFamily !== "all" && c.fam !== activeFamily) return false;
+      if(searchQ && c.name.toLowerCase().indexOf(searchQ) === -1) return false;
+      return true;
+    });
+    catalogGrid.innerHTML = "";
+    if(items.length === 0){
+      var e = document.createElement("div");
+      e.className = "empty-catalog"; e.textContent = "Không tìm thấy hạt phù hợp.";
+      catalogGrid.appendChild(e);
+      return;
+    }
+    items.forEach(function(c){
+      var card = document.createElement("div");
+      card.className = "bead-card"; card.tabIndex = 0;
+      card.setAttribute("role","button");
+      card.setAttribute("aria-label", "Thêm " + c.name + " vào chuỗi");
+      card.innerHTML =
+        '<button type="button" class="info-btn" aria-label="Xem thêm ảnh thực tế của ' + c.name + '" title="Xem ảnh thực tế">?</button>' +
+        '<div class="bead-swatch shape-' + c.shape + '"></div>' +
+        '<div class="bead-name">' + c.name + '</div>' +
+        '<div class="bead-mm">' + c.mm + 'mm</div>' +
+        '<div class="bead-price"><span class="now tnum">' + money(c.price) + '</span><span class="was tnum">' + money(c.was) + '</span></div>';
+      applyBeadVisual(card.querySelector(".bead-swatch"), c);
+      card.querySelector(".info-btn").addEventListener("click", function(ev){ ev.stopPropagation(); openModal(c.id); });
+      card.addEventListener("click", function(){ addBead(c.id); });
+      card.addEventListener("keydown", function(ev){ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); addBead(c.id); } });
+      catalogGrid.appendChild(card);
+    });
+  }
+
+  // ---------- Ring render ----------
+  var ringInner = document.getElementById("ringInner");
+  var ringGuide = document.getElementById("ringGuide");
+  var emptyHint = document.getElementById("emptyHint");
+  var ringTip = document.getElementById("ringTip");
+  var pillCount = document.getElementById("pillCount");
+  var wristVal = document.getElementById("wristVal");
+
+  function render(){
+    var layout = computeLayout(ring);
+    ringGuide.style.width = ringGuide.style.height = (layout.r*2) + "px";
+    emptyHint.style.display = ring.length === 0 ? "block" : "none";
+    ringTip.textContent = ring.length > 0 ? "Kéo hạt để đổi vị trí · Bấm để gỡ" : "";
+
+    var seen = {};
+    layout.items.forEach(function(it){
+      seen[it.uid] = true;
+      var el = beadEls[it.uid];
+      if(!el){
+        el = document.createElement("div");
+        el.tabIndex = 0;
+        el.setAttribute("role","button");
+        ringInner.appendChild(el);
+        beadEls[it.uid] = el;
+        attachBeadInteraction(el, it.uid);
+      }
+      el.className = "placed-bead shape-" + CMAP[it.id].shape + (dragState && dragState.uid===it.uid && dragState.moved ? " dragging" : "");
+      el.style.width = it.w + "px";
+      el.style.height = it.h + "px";
+      applyBeadVisual(el, CMAP[it.id]);
+      el.setAttribute("aria-label", CMAP[it.id].name + " — kéo để đổi vị trí, bấm hoặc nhấn Delete để gỡ");
+      el.title = CMAP[it.id].name;
+      if(!(dragState && dragState.moved && dragState.uid === it.uid)){
+        el.style.transform = "translate(calc(-50% + " + it.x + "px), calc(-50% + " + it.y + "px)) rotate(" + it.rot.toFixed(2) + "deg)";
+      }
+    });
+    Object.keys(beadEls).forEach(function(uid){
+      if(!seen[uid]){ beadEls[uid].remove(); delete beadEls[uid]; }
+    });
+
+    pillCount.textContent = String(ring.length);
+    var totalMm = ring.reduce(function(s,b){ return s + CMAP[b.id].mm; }, 0);
+    wristVal.textContent = ring.length ? (totalMm/10).toFixed(1) + " cm" : "— cm";
+
+    renderOverview();
+    hideSaveCard();
+  }
+
+  function renderOverview(){
+    var counts = {}, order = [];
+    ring.forEach(function(b){ if(!counts[b.id]){ counts[b.id]=0; order.push(b.id); } counts[b.id]++; });
+    var wrap = document.getElementById("overviewSwatches");
+    wrap.innerHTML = "";
+    order.forEach(function(id){
+      var c = CMAP[id];
+      var dot = document.createElement("div");
+      dot.className = "ov-dot";
+      dot.style.background = swatchBackground(c.fam);
+      dot.title = c.name + " × " + counts[id];
+      wrap.appendChild(dot);
+    });
+    document.getElementById("ovEmpty").style.display = order.length ? "none" : "block";
+    document.getElementById("ovCount").textContent = String(ring.length);
+    var total = ring.reduce(function(s,b){ return s + CMAP[b.id].price; }, 0);
+    document.getElementById("totalVal").textContent = money(total);
+  }
+
+  function applyUserScale(){ ringInner.style.transform = "scale(" + userScale + ")"; }
+
+  function addBead(id){ ring.push({ uid: nextUid++, id: id }); render(); }
+  function removeInstance(uid){ ring = ring.filter(function(b){ return b.uid !== uid; }); render(); }
+
+  document.getElementById("clearBtn").addEventListener("click", function(){
+    if(ring.length===0) return;
+    ring = []; render();
+  });
+
+  // ---------- Drag-to-reorder + click/Delete-to-remove ----------
+  function attachBeadInteraction(el, uid){
+    el.addEventListener("pointerdown", function(e){
+      if(e.button !== undefined && e.button !== 0) return;
+      e.preventDefault();
+      try{ el.setPointerCapture(e.pointerId); }catch(err){}
+      dragState = { uid:uid, pointerId:e.pointerId, moved:false, startX:e.clientX, startY:e.clientY };
+    });
+
+    el.addEventListener("pointermove", function(e){
+      if(!dragState || dragState.pointerId !== e.pointerId || dragState.uid !== uid) return;
+      var dx = e.clientX - dragState.startX, dy = e.clientY - dragState.startY;
+      if(!dragState.moved){
+        if(Math.hypot(dx,dy) < 5) return;
+        dragState.moved = true;
+        el.classList.add("dragging");
+      }
+      e.preventDefault();
+
+      var rect = ringInner.getBoundingClientRect();
+      var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+      var lx = (e.clientX - cx) / userScale, ly = (e.clientY - cy) / userScale;
+      var dragRot = (Math.atan2(ly, lx) * 180 / Math.PI) - 90;
+      el.style.transform = "translate(calc(-50% + " + lx + "px), calc(-50% + " + ly + "px)) scale(1.16) rotate(" + dragRot.toFixed(2) + "deg)";
+
+      var curIdx = ring.findIndex(function(b){ return b.uid === uid; });
+      if(curIdx === -1) return;
+      var working = ring.slice(); working.splice(curIdx,1);
+      var wl = computeLayout(working).items;
+      var na = normAngle(Math.atan2(ly, lx));
+      var newIdx = 0;
+      for(var i=0; i<wl.length; i++){
+        if(normAngle(wl[i].angle) < na) newIdx++; else break;
+      }
+      if(newIdx !== curIdx){
+        var item = ring.splice(curIdx,1)[0];
+        ring.splice(newIdx,0,item);
+      }
+      render();
+    });
+
+    function endDrag(e){
+      if(!dragState || dragState.pointerId !== e.pointerId || dragState.uid !== uid) return;
+      var moved = dragState.moved;
+      try{ el.releasePointerCapture(e.pointerId); }catch(err){}
+      dragState = null;
+      if(moved){ render(); } else { removeInstance(uid); }
+    }
+    el.addEventListener("pointerup", endDrag);
+    el.addEventListener("pointercancel", endDrag);
+    el.addEventListener("keydown", function(e){
+      if(e.key==="Delete" || e.key==="Backspace"){ e.preventDefault(); removeInstance(uid); }
+    });
+  }
+
+  // ---------- Zoom ----------
+  var zoomRange = document.getElementById("zoomRange");
+  var zoomLabel = document.getElementById("zoomLabel");
+  function setZoom(v){
+    v = Math.max(70, Math.min(160, v));
+    zoomRange.value = v; userScale = v/100; zoomLabel.textContent = v + "%";
+    applyUserScale();
+  }
+  zoomRange.addEventListener("input", function(){ setZoom(parseInt(zoomRange.value,10)); });
+  document.getElementById("zoomIn").addEventListener("click", function(){ setZoom(parseInt(zoomRange.value,10)+15); });
+  document.getElementById("zoomOut").addEventListener("click", function(){ setZoom(parseInt(zoomRange.value,10)-15); });
+
+  // ---------- Inspire ----------
+  document.getElementById("inspireBtn").addEventListener("click", function(){
+    var pairs = [
+      {fams:["hong","kim","trang"], n:9}, {fams:["duong","kim","trang"], n:8},
+      {fams:["tim","kim"], n:8}, {fams:["la","kim","trang"], n:9},
+      {fams:["den","kim","vang"], n:8}, {fams:["do","kim","trang"], n:9}
+    ];
+    var pick = pairs[Math.floor(Math.random()*pairs.length)];
+    var pool = CATALOG.filter(function(c){ return pick.fams.indexOf(c.fam) !== -1; });
+    var out = [];
+    for(var i=0;i<pick.n;i++){ out.push(pool[Math.floor(Math.random()*pool.length)].id); }
+    ring = out.map(function(id){ return { uid: nextUid++, id: id }; });
+    render();
+  });
+
+  // ---------- Save / load design code ----------
+  var saveCard = document.getElementById("saveCard");
+  function hideSaveCard(){ saveCard.classList.remove("show"); saveCard.innerHTML=""; }
+  document.getElementById("saveBtn").addEventListener("click", function(){
+    if(ring.length===0){
+      saveCard.innerHTML = "<strong>Chuỗi đang trống.</strong> Thêm vài viên hạt trước khi lưu.";
+      saveCard.classList.add("show");
+      return;
+    }
+    var payload = { t: document.getElementById("designTitle").value, b: ring.map(function(x){ return x.id; }) };
+    var code = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    saveCard.innerHTML = '<strong>Đã lưu thiết kế (demo, chỉ lưu trong mã — chưa nối máy chủ).</strong><br>Sao chép mã bên trên phần "Dán mã thiết kế" để nạp lại bất cứ lúc nào.';
+    saveCard.classList.add("show");
+    document.getElementById("codeInput").value = code;
+  });
+
+  var codeMsg = document.getElementById("codeMsg");
+  document.getElementById("loadCodeBtn").addEventListener("click", loadFromCode);
+  document.getElementById("codeInput").addEventListener("keydown", function(e){ if(e.key==="Enter") loadFromCode(); });
+  function loadFromCode(){
+    var raw = document.getElementById("codeInput").value.trim();
+    codeMsg.className = "code-msg"; codeMsg.textContent = "";
+    if(!raw) return;
+    try{
+      var payload = JSON.parse(decodeURIComponent(escape(atob(raw))));
+      if(!payload || !Array.isArray(payload.b)) throw new Error("bad");
+      var valid = payload.b.every(function(id){ return !!CMAP[id]; });
+      if(!valid) throw new Error("bad");
+      ring = payload.b.map(function(id){ return { uid: nextUid++, id: id }; });
+      if(payload.t) document.getElementById("designTitle").value = payload.t;
+      render();
+      codeMsg.textContent = "Đã tải lại thiết kế (" + ring.length + " hạt).";
+      codeMsg.classList.add("ok");
+    }catch(err){
+      codeMsg.textContent = "Mã không hợp lệ — kiểm tra lại rồi thử lại.";
+      codeMsg.classList.add("err");
+    }
+  }
+
+  // ---------- Info modal (placeholder "photos") ----------
+  var modalBackdrop = document.getElementById("modalBackdrop");
+  function openModal(id){
+    var c = CMAP[id];
+    document.getElementById("modalTitle").textContent = c.name;
+    document.getElementById("modalSub").textContent = c.mm + "mm · " + FMAP[c.fam].label;
+    var gal = document.getElementById("modalGallery");
+    gal.innerHTML = "";
+    if(c.shape === "charm"){
+      // Charms auto-rotate to face the string — show that instead of a fake lighting variant.
+      var spins = [ {deg:0, label:"Ở đầu dây"}, {deg:-90, label:"Ở cạnh dây"}, {deg:180, label:"Ở cuối dây"} ];
+      spins.forEach(function(sVariant){
+        var tile = document.createElement("div");
+        tile.className = "gallery-tile";
+        var shape = document.createElement("div");
+        shape.className = "gallery-shape shape-charm";
+        shape.style.transform = "rotate(" + sVariant.deg + "deg)";
+        shape.innerHTML = charmSvgMarkup(c.charmType, c.fam);
+        var span = document.createElement("span");
+        span.textContent = sVariant.label;
+        tile.appendChild(shape); tile.appendChild(span);
+        gal.appendChild(tile);
+      });
+    } else {
+      var variants = [ {pos:"32% 26%", label:"Góc nghiêng"}, {pos:"60% 65%", label:"Cận cảnh"}, {pos:"50% 15%", label:"Dưới ánh sáng"} ];
+      variants.forEach(function(v){
+        var tile = document.createElement("div");
+        tile.className = "gallery-tile";
+        var bg = "radial-gradient(circle at " + v.pos + ", rgba(255,255,255,.9), rgba(255,255,255,0) 40%)," +
+                 "radial-gradient(circle at 70% 80%, rgba(0,0,0,.28), rgba(0,0,0,0) 46%)," +
+                 "radial-gradient(circle at 50% 50%, " + FMAP[c.fam].light + ", " + FMAP[c.fam].dark + " 88%)";
+        var shape = document.createElement("div");
+        shape.className = "gallery-shape shape-" + c.shape;
+        shape.style.background = bg;
+        var span = document.createElement("span");
+        span.textContent = v.label;
+        tile.appendChild(shape); tile.appendChild(span);
+        gal.appendChild(tile);
+      });
+    }
+    modalBackdrop.hidden = false;
+  }
+  function closeModal(){ modalBackdrop.hidden = true; }
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  modalBackdrop.addEventListener("click", function(e){ if(e.target===modalBackdrop) closeModal(); });
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !modalBackdrop.hidden) closeModal(); });
+
+  // ---------- Init ----------
+  renderCatalog();
+  render();
+})();
+</script>

@@ -1,0 +1,328 @@
+<title>Chuỗi Ngọc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --surface:#ffffff;
+    --surface-2:#eef1f9;
+    --ink:#161b2e;
+    --muted:#5f6780;
+    --line:#e1e5f0;
+    --accent:#4658e5;
+    --accent-2:#ffb020;
+    --price:#b8790a;
+    --on-accent:#ffffff;
+    --shadow: 0 1px 2px rgba(22,27,46,.06), 0 10px 26px -14px rgba(22,27,46,.22);
+    color-scheme: light;
+  }
+  /* Fixed light theme — same two-accent system as the designer tool: blue = actionable, gold = value. */
+
+  *{box-sizing:border-box;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"DM Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size:15px; line-height:1.55; padding:0; margin:0;
+  }
+  h1,h2,h3,.display{ font-family:"Sora","DM Sans",sans-serif; text-wrap:balance; margin:0; }
+  p{ margin:0; }
+  a{ color:inherit; }
+  .tnum{ font-variant-numeric:tabular-nums; }
+  button{ font-family:inherit; }
+
+  .wrap{ max-width:1120px; margin:0 auto; padding-inline:24px; }
+  .eyebrow{ font-size:11.5px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); }
+
+  /* ---------- Bead sphere (matches the designer tool's swatch technique) ---------- */
+  .bead{ border-radius:50%; box-shadow: inset 0 -4px 8px rgba(0,0,0,.2), inset 0 3px 5px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.18); }
+  .bead.c-blue{ background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.9), rgba(255,255,255,0) 38%), radial-gradient(circle at 68% 74%, rgba(0,0,0,.28), rgba(0,0,0,0) 48%), radial-gradient(circle at 50% 45%, #aab4f7, #4658e5 88%); }
+  .bead.c-gold{ background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.9), rgba(255,255,255,0) 38%), radial-gradient(circle at 68% 74%, rgba(0,0,0,.28), rgba(0,0,0,0) 48%), radial-gradient(circle at 50% 45%, #ffe2a3, #b8790a 88%); }
+  .bead.c-rose{ background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.9), rgba(255,255,255,0) 38%), radial-gradient(circle at 68% 74%, rgba(0,0,0,.28), rgba(0,0,0,0) 48%), radial-gradient(circle at 50% 45%, #f7cdd9, #c96f8d 88%); }
+  .bead.c-white{ background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.9), rgba(255,255,255,0) 38%), radial-gradient(circle at 68% 74%, rgba(0,0,0,.28), rgba(0,0,0,0) 48%), radial-gradient(circle at 50% 45%, #faf7f4, #d3c9c2 88%); }
+  .bead.c-teal{ background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.9), rgba(255,255,255,0) 38%), radial-gradient(circle at 68% 74%, rgba(0,0,0,.28), rgba(0,0,0,0) 48%), radial-gradient(circle at 50% 45%, #a7ddb6, #1f6b3a 88%); }
+
+  /* ---------- Header ---------- */
+  .site-header{ position:sticky; top:0; z-index:20; background:rgba(245,247,251,.86); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  .site-header .wrap{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding-block:14px; }
+  .brandmark{ display:flex; align-items:center; gap:9px; font-family:"Sora"; font-weight:800; font-size:19px; color:var(--accent); flex-shrink:0; }
+  .brandmark .dot{ width:9px; height:9px; border-radius:50%; background:var(--accent-2); flex-shrink:0; }
+  .nav-links{ display:flex; align-items:center; gap:26px; font-size:13.5px; font-weight:600; color:var(--muted); }
+  .nav-links a:hover{ color:var(--ink); }
+  .header-cta{ flex-shrink:0; }
+  @media (max-width:760px){ .nav-links{ display:none; } }
+
+  .btn{ display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:12px 20px; font-size:13.5px; font-weight:700; cursor:pointer; border:1px solid transparent; text-decoration:none; white-space:nowrap; }
+  .btn-primary{ background:var(--accent); color:var(--on-accent); box-shadow:var(--shadow); }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{ background:var(--surface); border-color:var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--accent); color:var(--accent); }
+  .btn-sm{ padding:9px 15px; font-size:12.5px; }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding-block:64px 56px; overflow:hidden; }
+  .hero .wrap{ display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; }
+  .hero h1{ font-size:clamp(30px,4.4vw,46px); font-weight:800; line-height:1.12; letter-spacing:-.01em; margin-top:10px; }
+  .hero h1 .u{ text-decoration:underline; text-decoration-color:var(--accent-2); text-decoration-thickness:4px; text-underline-offset:6px; }
+  .hero p.lede{ margin-top:16px; font-size:15.5px; color:var(--muted); max-width:46ch; }
+  .hero-ctas{ display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
+  .hero-note{ margin-top:16px; font-size:12px; color:var(--muted); }
+  .demo-pill{ display:inline-flex; align-items:center; gap:6px; background:var(--surface-2); color:var(--accent); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; padding:4px 10px; border-radius:999px; margin-top:14px; }
+
+  .hero-art{ position:relative; width:100%; max-width:420px; height:420px; margin-inline:auto; }
+  .hero-ring{ position:absolute; inset:0; }
+  .hero-ring .bead{ position:absolute; top:50%; left:50%; }
+  .hero-guide{ position:absolute; inset:12%; border:1.5px dashed var(--line); border-radius:50%; }
+  .hero-badge{ position:absolute; bottom:6%; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:10px 16px; box-shadow:var(--shadow); text-align:center; }
+  .hero-badge b{ font-family:"Sora"; font-size:16px; color:var(--price); display:block; }
+  .hero-badge span{ font-size:10.5px; color:var(--muted); }
+
+  @media (max-width:860px){
+    .hero .wrap{ grid-template-columns:1fr; }
+    .hero-art{ order:-1; max-width:280px; height:280px; margin-bottom:8px; }
+  }
+
+  /* ---------- Section shell ---------- */
+  section{ padding-block:56px; }
+  .section-head{ max-width:620px; margin-bottom:34px; }
+  .section-head h2{ font-size:clamp(22px,3vw,30px); font-weight:800; margin-top:8px; }
+  .section-head p{ margin-top:10px; color:var(--muted); font-size:14.5px; }
+
+  /* ---------- Category cards ---------- */
+  .cat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  .strap-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+  @media (max-width:920px){ .strap-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:520px){ .strap-grid{ grid-template-columns:1fr; } }
+  .cat-card{ background:var(--surface); border:1px solid var(--line); border-radius:22px; padding:28px; display:flex; flex-direction:column; box-shadow:var(--shadow); }
+  .cat-visual{ height:150px; position:relative; margin-bottom:22px; }
+  .cat-card h3{ font-size:20px; font-weight:800; }
+  .cat-card p{ color:var(--muted); font-size:13.5px; margin-top:8px; flex:1; }
+  .cat-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:20px; }
+  .cat-price{ font-family:"Sora"; font-weight:800; font-size:15px; color:var(--price); }
+  .cat-price span{ font-family:"DM Sans"; font-weight:500; font-size:11.5px; color:var(--muted); }
+
+  /* bracelet visual: ring of beads */
+  .cv-bracelet{ display:flex; align-items:center; justify-content:center; }
+  .cv-bracelet .ring{ position:relative; width:130px; height:130px; }
+  .cv-bracelet .ring .bead{ position:absolute; top:50%; left:50%; }
+
+  /* phone-strap visual: phone silhouette + beaded strap */
+  .cv-strap{ display:flex; align-items:center; justify-content:center; gap:14px; }
+  .cv-phone{ width:62px; height:118px; border-radius:14px; background:var(--ink); position:relative; flex-shrink:0; box-shadow:var(--shadow); }
+  .cv-phone::before{ content:""; position:absolute; inset:6px; border-radius:9px; background:linear-gradient(160deg, #2a3050, #161b2e); }
+  .cv-phone::after{ content:""; position:absolute; top:14px; left:50%; transform:translateX(-50%); width:16px; height:16px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #6d7ae8, #2a3050 80%); }
+  .cv-strand{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+
+  /* ---------- How it works ---------- */
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .step{ background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:22px; }
+  .step .num{ width:32px; height:32px; border-radius:50%; background:var(--surface-2); color:var(--accent); font-family:"Sora"; font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .step h3{ font-size:15.5px; font-weight:800; }
+  .step p{ margin-top:6px; font-size:13px; color:var(--muted); }
+
+  /* ---------- Trust badges ---------- */
+  .badges{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .badge{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; padding:18px 10px; }
+  .badge .ic{ width:38px; height:38px; border-radius:50%; background:var(--surface-2); color:var(--accent); display:flex; align-items:center; justify-content:center; }
+  .badge span{ font-size:12.5px; font-weight:700; color:var(--ink); }
+
+  @media (max-width:760px){
+    .cat-grid{ grid-template-columns:1fr; }
+    .steps{ grid-template-columns:1fr; }
+    .badges{ grid-template-columns:1fr 1fr; }
+  }
+
+  /* ---------- Footer ---------- */
+  footer{ border-top:1px solid var(--line); padding-block:32px; }
+  footer .wrap{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; }
+  footer .fnote{ font-size:12px; color:var(--muted); }
+</style>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="brandmark"><span class="dot"></span>Chuỗi Ngọc</div>
+    <nav class="nav-links">
+      <a href="#vong-tay">Vòng tay</a>
+      <a href="#day-deo">Dây đeo điện thoại</a>
+      <a href="#cach-hoat-dong">Cách hoạt động</a>
+    </nav>
+    <a class="btn btn-primary btn-sm header-cta" href="thiet-ke.html">Tự thiết kế</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow">Tự thiết kế trang sức của riêng bạn</span>
+        <h1>Vòng tay &amp; dây đeo điện thoại, <span class="u">xâu theo đúng ý bạn</span></h1>
+        <p class="lede">Chọn từng viên hạt, xếp charm theo cách bạn thích, xem thành hình ngay trên màn hình trước khi đặt làm — không mẫu nào giống mẫu nào.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="thiet-ke.html">Bắt đầu thiết kế vòng tay</a>
+          <a class="btn btn-ghost" href="#day-deo">Xem dây đeo điện thoại</a>
+        </div>
+        <div class="demo-pill">Demo nội bộ — trang giới thiệu</div>
+      </div>
+      <div class="hero-art">
+        <div class="hero-guide"></div>
+        <div class="hero-ring" id="heroRing"></div>
+        <div class="hero-badge"><b>18 hạt</b><span>đang được xâu</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="vong-tay">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Hai dòng sản phẩm</span>
+        <h2>Chuyên tâm vào 2 thứ, làm cho thật tốt</h2>
+        <p>Không dàn trải — mọi viên hạt, mọi charm đều dùng chung một công cụ thiết kế, chỉ khác cách xâu.</p>
+      </div>
+      <div class="cat-grid">
+        <div class="cat-card">
+          <div class="cat-visual cv-bracelet">
+            <div class="ring" id="catRing"></div>
+          </div>
+          <h3>Vòng Tay Tự Thiết Kế</h3>
+          <p>Chọn hạt đá, thêm charm, vòng tay tự co giãn đúng cỡ tay bạn ngay khi xâu.</p>
+          <div class="cat-foot">
+            <div class="cat-price">Từ 89.000 đ <span>/ vòng</span></div>
+            <a class="btn btn-primary btn-sm" href="thiet-ke.html">Tự thiết kế →</a>
+          </div>
+        </div>
+        <div class="cat-card" id="day-deo">
+          <div class="cat-visual cv-strap">
+            <div class="cv-strand" id="strapStrand"></div>
+            <div class="cv-phone"></div>
+          </div>
+          <h3>Dây Đeo Điện Thoại</h3>
+          <p>Cùng kho hạt với vòng tay, xâu thành dây dài kèm móc khoá — tiện cầm, khó rơi.</p>
+          <div class="cat-foot">
+            <div class="cat-price">Từ 69.000 đ <span>/ dây</span></div>
+            <a class="btn btn-ghost btn-sm" href="#strap-gallery">Xem mẫu →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="strap-gallery">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Mẫu tham khảo</span>
+        <h2>Một vài kiểu dây đeo điện thoại</h2>
+        <p>Ảnh minh hoạ dựng bằng màu — công cụ tự thiết kế riêng cho dây đeo điện thoại đang được làm, hiện đặt theo mẫu có sẵn.</p>
+      </div>
+      <div class="strap-grid" id="strapGalleryGrid"></div>
+    </div>
+  </section>
+
+  <section id="cach-hoat-dong" style="background:var(--surface-2);">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Cách hoạt động</span>
+        <h2>3 bước, không cần biết gì về trang sức</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><h3>Chọn hạt yêu thích</h3><p>Lọc theo màu, hình dáng, thêm charm nếu muốn.</p></div>
+        <div class="step"><div class="num">2</div><h3>Xem trước trực tiếp</h3><p>Vòng/dây tự dựng hình ngay khi bạn thêm từng viên, kéo đổi vị trí thoải mái.</p></div>
+        <div class="step"><div class="num">3</div><h3>Đặt làm theo ý bạn</h3><p>Lưu thiết kế, chúng tôi xâu tay và giao đúng như bạn đã chọn.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="badges">
+        <div class="badge"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg></div><span>Hạt đá tự nhiên</span></div>
+        <div class="badge"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg></div><span>Thiết kế không giới hạn</span></div>
+        <div class="badge"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8l8-4 8 4-8 4-8-4Zm0 0v9l8 4 8-4V8M12 12v9"/></svg></div><span>Xâu thủ công theo đơn</span></div>
+        <div class="badge"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l4 4L21 4"/></svg></div><span>Đổi ý trước khi đặt</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="brandmark"><span class="dot"></span>Chuỗi Ngọc</div>
+    <div class="fnote">Demo nội bộ — trang giới thiệu, chưa kết nối đặt hàng thật.</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var COLORS = ["c-blue","c-gold","c-rose","c-white","c-teal"];
+
+  function ringOfBeads(container, count, radius, sizePx){
+    var frag = document.createDocumentFragment();
+    for(var i=0;i<count;i++){
+      var angle = (i/count) * 2*Math.PI - Math.PI/2;
+      var x = Math.cos(angle)*radius, y = Math.sin(angle)*radius;
+      var el = document.createElement("div");
+      el.className = "bead " + COLORS[i % COLORS.length];
+      el.style.width = sizePx + "px";
+      el.style.height = sizePx + "px";
+      el.style.transform = "translate(calc(-50% + " + x + "px), calc(-50% + " + y + "px))";
+      frag.appendChild(el);
+    }
+    container.appendChild(frag);
+  }
+  var heroCompact = window.innerWidth <= 860;
+  ringOfBeads(document.getElementById("heroRing"), 18, heroCompact ? 108 : 168, heroCompact ? 20 : 30);
+  ringOfBeads(document.getElementById("catRing"), 14, 58, 15);
+
+  // Phone-strap strand: a short vertical run of beads above the phone silhouette.
+  var strand = document.getElementById("strapStrand");
+  var strandColors = ["c-gold","c-rose","c-blue","c-white","c-gold","c-teal"];
+  strandColors.forEach(function(c, i){
+    var el = document.createElement("div");
+    el.className = "bead " + c;
+    var s = 15 - i*0.6;
+    el.style.width = s + "px"; el.style.height = s + "px";
+    strand.appendChild(el);
+  });
+
+  // Reference gallery of phone-strap examples — same bead-rendering technique, fixed layouts.
+  var STRAPS = [
+    {name:"Dây Biển Xanh", price:69000, colors:["c-blue","c-white","c-blue","c-gold","c-white","c-blue"]},
+    {name:"Dây Hoàng Hôn", price:75000, colors:["c-gold","c-rose","c-gold","c-rose","c-gold","c-rose"]},
+    {name:"Dây Rừng Xanh", price:69000, colors:["c-teal","c-white","c-teal","c-gold","c-teal","c-white"]},
+    {name:"Dây Ngọc Trai", price:79000, colors:["c-white","c-gold","c-white","c-gold","c-white","c-gold"]}
+  ];
+  var fmt = new Intl.NumberFormat("vi-VN");
+  var gg = document.getElementById("strapGalleryGrid");
+  STRAPS.forEach(function(s){
+    var card = document.createElement("div");
+    card.className = "cat-card";
+    card.style.padding = "20px";
+    var visual = document.createElement("div");
+    visual.className = "cat-visual cv-strap";
+    visual.style.height = "128px";
+    var strandEl = document.createElement("div");
+    strandEl.className = "cv-strand";
+    s.colors.forEach(function(c, i){
+      var b = document.createElement("div");
+      b.className = "bead " + c;
+      var sz = 13 - i*0.5;
+      b.style.width = sz + "px"; b.style.height = sz + "px";
+      strandEl.appendChild(b);
+    });
+    var phone = document.createElement("div");
+    phone.className = "cv-phone";
+    phone.style.width = "44px"; phone.style.height = "86px";
+    visual.appendChild(strandEl); visual.appendChild(phone);
+    var h3 = document.createElement("h3");
+    h3.style.fontSize = "14.5px";
+    h3.textContent = s.name;
+    var price = document.createElement("div");
+    price.className = "cat-price"; price.style.marginTop = "10px"; price.style.fontSize = "13px";
+    price.textContent = fmt.format(s.price) + " đ";
+    card.appendChild(visual); card.appendChild(h3); card.appendChild(price);
+    gg.appendChild(card);
+  });
+})();
+</script>
