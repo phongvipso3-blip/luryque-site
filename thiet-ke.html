@@ -6,7 +6,7 @@
 <title>Luryque</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Bodoni+Moda:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f5f7fb;
@@ -21,6 +21,7 @@
     --on-accent:#ffffff;
     --shadow: 0 1px 2px rgba(22,27,46,.06), 0 10px 26px -14px rgba(22,27,46,.22);
     --card-h: 158px;
+    --catalog-mult: 1.2;
     color-scheme: light;
   }
   /* Fixed light theme by request — intentionally ignores prefers-color-scheme / OS dark mode.
@@ -38,7 +39,7 @@
     font-size:14px;
     line-height:1.5;
   }
-  h1,h2,h3,.display{ font-family:"Playfair Display", "DM Sans", serif; font-weight:600; text-wrap:balance; }
+  h1,h2,h3,.display{ font-family:"Bodoni Moda", "DM Sans", serif; font-weight:600; text-wrap:balance; }
   .tnum{ font-variant-numeric: tabular-nums; }
   button{ font-family:inherit; }
 
@@ -69,7 +70,7 @@
   .title-field{ flex:1; min-width:0; }
   .title-field input{
     width:100%; background:transparent; border:none; border-bottom:1px solid transparent;
-    color:var(--ink); font-family:"Playfair Display"; font-weight:600; font-size:16px; padding:5px 2px;
+    color:var(--ink); font-family:"Bodoni Moda"; font-weight:600; font-size:16px; padding:5px 2px;
   }
   .title-field input:hover{ border-bottom-color:var(--line); }
   .title-field input:focus{ outline:none; border-bottom-color:var(--accent); }
@@ -124,7 +125,7 @@
     display:flex;
     border-top:1px solid var(--line);
     background:var(--surface);
-    height: calc(var(--card-h) * 2.2);
+    height: calc(var(--card-h) * var(--catalog-mult));
     flex-shrink:0;
   }
   .fam-collist{
@@ -154,6 +155,11 @@
     display:flex; flex-direction:column;
     transition:transform .1s, border-color .12s, box-shadow .12s;
   }
+  /* Fixed-size slot: every illustration centers and grows to fill it (capped by whichever of
+     width/height it hits first), so a flat disc and a tall charm both read as "equally large" —
+     only name/mm/price are pinned to the card's bottom edge via .bead-info's margin-top:auto. */
+  .bead-img-slot{ width:100%; height:68px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .bead-info{ margin-top:auto; }
   .bead-card:hover{ border-color:var(--accent); transform:translateY(-1px); box-shadow:var(--shadow); }
   .bead-card:active{ transform:translateY(0); }
   .info-btn{
@@ -171,16 +177,19 @@
     .info-btn:focus-visible{ opacity:1; }
   }
 
+  /* Each shape keeps its natural aspect ratio but is scaled up until it hits the img-slot's
+     width or height, whichever comes first — so every shape reads as "maximally large" within
+     the same fixed box instead of each having its own arbitrary footprint. */
   .bead-swatch{
-    width:40px; height:40px; margin:2px auto 7px; flex-shrink:0;
+    width:60px; height:60px; flex-shrink:0;
     box-shadow: inset 0 -4px 8px rgba(0,0,0,.18), inset 0 3px 5px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.15);
   }
-  .bead-swatch.shape-oval{ width:50px; height:29px; }
-  .bead-swatch.shape-cube{ width:34px; height:34px; }
-  .bead-swatch.shape-disc{ width:48px; height:22px; }
-  .bead-swatch.shape-drop{ width:32px; height:40px; }
-  .bead-swatch.shape-tube{ width:54px; height:24px; }
-  .bead-swatch.shape-charm{ width:26px; height:42px; }
+  .bead-swatch.shape-oval{ width:60px; height:35px; }
+  .bead-swatch.shape-cube{ width:60px; height:60px; }
+  .bead-swatch.shape-disc{ width:60px; height:27px; }
+  .bead-swatch.shape-drop{ width:48px; height:60px; }
+  .bead-swatch.shape-tube{ width:60px; height:27px; }
+  .bead-swatch.shape-charm{ width:37px; height:60px; }
 
   .shape-round, .shape-oval, .shape-disc{ border-radius:50%; }
   .shape-cube{ border-radius:20%; }
@@ -217,7 +226,7 @@
 
   /* ---------- Mobile ---------- */
   @media (max-width: 860px){
-    :root{ --card-h: 122px; }
+    :root{ --card-h: 122px; --catalog-mult: 2.2; }
     .topbar{ padding:10px 14px; gap:8px; }
     .brand-logo{ height:26px; }
     .title-field input{ font-size:15px; }
@@ -230,7 +239,14 @@
     .fam-collist{ width:100px; padding:8px 6px; gap:5px; }
     .fam-bar{ padding:9px 8px; font-size:11px; }
     .fam-beads{ padding:8px; gap:8px; }
-    .bead-swatch{ width:34px; height:34px; margin:1px auto 5px; }
+    .bead-img-slot{ height:48px; }
+    .bead-swatch{ width:42px; height:42px; }
+    .bead-swatch.shape-oval{ width:42px; height:24px; }
+    .bead-swatch.shape-cube{ width:42px; height:42px; }
+    .bead-swatch.shape-disc{ width:42px; height:19px; }
+    .bead-swatch.shape-drop{ width:34px; height:42px; }
+    .bead-swatch.shape-tube{ width:42px; height:19px; }
+    .bead-swatch.shape-charm{ width:26px; height:42px; }
     .bead-name{ font-size:10.5px; }
   }
 </style>
@@ -514,10 +530,12 @@
       card.setAttribute("aria-label", "Thêm " + c.name + " vào chuỗi");
       card.innerHTML =
         '<button type="button" class="info-btn" aria-label="Xem thêm ảnh thực tế của ' + c.name + '" title="Xem ảnh thực tế">?</button>' +
-        '<div class="bead-swatch shape-' + c.shape + '"></div>' +
-        '<div class="bead-name">' + c.name + '</div>' +
-        '<div class="bead-mm">' + c.mm + 'mm</div>' +
-        '<div class="bead-price"><span class="now tnum">' + money(c.price) + '</span><span class="was tnum">' + money(c.was) + '</span></div>';
+        '<div class="bead-img-slot"><div class="bead-swatch shape-' + c.shape + '"></div></div>' +
+        '<div class="bead-info">' +
+          '<div class="bead-name">' + c.name + '</div>' +
+          '<div class="bead-mm">' + c.mm + 'mm</div>' +
+          '<div class="bead-price"><span class="now tnum">' + money(c.price) + '</span><span class="was tnum">' + money(c.was) + '</span></div>' +
+        '</div>';
       applyBeadVisual(card.querySelector(".bead-swatch"), c);
       card.querySelector(".info-btn").addEventListener("click", function(ev){ ev.stopPropagation(); openModal(c.id); });
       card.addEventListener("click", function(){ addBead(c.id); });
