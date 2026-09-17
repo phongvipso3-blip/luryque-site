@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Luryque</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,20 +17,20 @@
     --line:#e1e5f0;
     --accent:#4658e5;
     --accent-2:#ffb020;
-    --price:#b8790a;
-    --good:#16a34a;
+    --price:#dc2626;
     --on-accent:#ffffff;
     --shadow: 0 1px 2px rgba(22,27,46,.06), 0 10px 26px -14px rgba(22,27,46,.22);
+    --card-h: 158px;
     color-scheme: light;
   }
   /* Fixed light theme by request — intentionally ignores prefers-color-scheme / OS dark mode.
-     Two-accent system: --accent (indigo blue) marks anything actionable/interactive; --accent-2 /
-     --price (gold) is reserved for value — the running price and a small "sparkle" on the total —
-     so it reads as jewelry, not decoration. */
+     --accent (indigo blue) marks anything actionable/interactive; --price (red) marks every
+     money figure, so cost always reads at a glance. */
 
   *{box-sizing:border-box;}
   @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
 
+  html, body{ height:100%; margin:0; overflow:hidden; }
   body{
     background:var(--bg);
     color:var(--ink);
@@ -45,11 +45,12 @@
   .app{
     display:grid;
     grid-template-areas:
-      "top top top"
-      "catalog stage summary";
-    grid-template-columns: 296px 1fr 320px;
-    grid-template-rows: auto 1fr;
-    min-height:100vh;
+      "top"
+      "stage"
+      "catalog";
+    grid-template-rows: auto 1fr auto;
+    height:100vh;
+    height:100dvh;
     gap:0;
   }
 
@@ -58,13 +59,13 @@
     grid-area:top;
     display:flex;
     align-items:center;
-    gap:16px;
-    padding:14px 20px;
+    gap:14px;
+    padding:12px 20px;
     background:var(--surface);
     border-bottom:1px solid var(--line);
   }
   .brand{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
-  .brand-logo{ height:34px; width:auto; display:block; }
+  .brand-logo{ height:32px; width:auto; display:block; }
   .title-field{ flex:1; min-width:0; }
   .title-field input{
     width:100%; background:transparent; border:none; border-bottom:1px solid transparent;
@@ -72,108 +73,31 @@
   }
   .title-field input:hover{ border-bottom-color:var(--line); }
   .title-field input:focus{ outline:none; border-bottom-color:var(--accent); }
-  .topbar .note{ font-size:12px; color:var(--muted); flex-shrink:0; max-width:280px; text-align:right; }
+  .topbar-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
 
-  /* ---------- Catalog rail ---------- */
-  .rail-catalog{
-    grid-area:catalog;
-    border-right:1px solid var(--line);
-    background:var(--surface);
-    display:flex; flex-direction:column;
-    min-height:0; max-height:calc(100vh - 61px);
-  }
-  .rail-head{ padding:16px 16px 10px; }
-  .rail-head h2{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 10px; }
-  .search{
-    display:flex; align-items:center; gap:8px;
-    border:1px solid var(--line); border-radius:10px; padding:9px 11px; background:var(--bg);
-  }
-  .search svg{ flex-shrink:0; opacity:.5; }
-  .search input{ border:none; background:transparent; outline:none; width:100%; color:var(--ink); font-size:13.5px; }
-  /* ---------- Family accordion: each color is its own collapsed bar; tap the arrow to reveal
-     that color's beads inline, instead of one shared filter row + one shared grid. ---------- */
-  .fam-list{ flex:1; overflow-y:auto; padding:6px 14px 20px; }
-  .fam-section{ margin-bottom:7px; }
-  .fam-bar{
-    width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
-    border:none; border-radius:11px; padding:13px 15px; font-size:13.5px; font-weight:700; cursor:pointer;
-    transition:filter .12s;
-  }
-  .fam-bar:hover{ filter:brightness(1.07); }
-  .fam-bar .fam-count{ font-weight:600; opacity:.85; margin-right:auto; margin-left:8px; font-size:12px; }
-  .fam-bar .chev{ transition:transform .2s ease; flex-shrink:0; }
-  .fam-bar[aria-expanded="true"] .chev{ transform:rotate(180deg); }
-  .fam-panel{ max-height:0; overflow:hidden; transition:max-height .25s ease; }
-  .fam-panel[data-open="true"]{ max-height:3000px; }
-  .fam-section.no-match{ display:none; }
-
-  .catalog-grid{ padding:10px 2px 14px; display:grid; grid-template-columns:1fr 1fr; gap:10px; align-content:start; }
-  .bead-card{
-    position:relative;
-    border:1px solid var(--line); background:var(--bg); border-radius:14px;
-    padding:11px 9px 9px; cursor:pointer; text-align:center;
-    transition:transform .1s, border-color .12s, box-shadow .12s;
-  }
-  .bead-card:hover{ border-color:var(--accent); transform:translateY(-1px); box-shadow:var(--shadow); }
-  .bead-card:active{ transform:translateY(0); }
-  .info-btn{
-    position:absolute; top:6px; right:6px; width:19px; height:19px; border-radius:50%;
-    border:1px solid var(--line); background:var(--surface); color:var(--muted);
-    font-size:11px; font-weight:800; line-height:1; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-    opacity:1; transition:opacity .15s ease, border-color .12s, color .12s;
-  }
-  .info-btn:hover{ border-color:var(--accent); color:var(--accent); }
-  /* Desktop/mouse: keep cards clean, reveal "?" on hover (or keyboard focus). Touch devices have no
-     hover, so the media query below never applies there and the button stays visible for tapping. */
-  @media (hover:hover) and (pointer:fine){
-    .info-btn{ opacity:0; }
-    .bead-card:hover .info-btn,
-    .bead-card:focus-within .info-btn,
-    .info-btn:focus-visible{ opacity:1; }
-  }
-
-  .bead-swatch{
-    width:44px; height:44px; margin:2px auto 9px; flex-shrink:0;
-    box-shadow: inset 0 -4px 8px rgba(0,0,0,.18), inset 0 3px 5px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.15);
-  }
-  .bead-swatch.shape-oval{ width:54px; height:32px; }
-  .bead-swatch.shape-cube{ width:38px; height:38px; }
-  .bead-swatch.shape-disc{ width:52px; height:24px; }
-  .bead-swatch.shape-drop{ width:36px; height:44px; }
-  .bead-swatch.shape-tube{ width:58px; height:26px; }
-  .bead-swatch.shape-charm{ width:30px; height:48px; }
-
-  .shape-round, .shape-oval, .shape-disc{ border-radius:50%; }
-  .shape-cube{ border-radius:20%; }
-  .shape-tube{ border-radius:40%; }
-  .shape-drop{ border-radius:58% 58% 58% 6%; }
-  .shape-star{ border-radius:0; clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
-  .shape-charm{ box-shadow:none; background:none; }
-
-  .bead-name{ font-size:12px; font-weight:700; line-height:1.25; min-height:2.4em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .bead-mm{ font-size:10.5px; color:var(--muted); margin-top:3px; }
-  .bead-price{ margin-top:5px; }
-  .bead-price .now{ font-weight:800; font-size:12.5px; color:var(--price); }
-  .bead-price .was{ font-size:10.5px; color:var(--muted); text-decoration:line-through; margin-left:4px; }
-  .empty-catalog{ grid-column:1/-1; padding:30px 10px; text-align:center; color:var(--muted); font-size:13px; }
+  .btn{ border-radius:999px; padding:11px 18px; font-size:13.5px; font-weight:700; cursor:pointer; text-align:center; border:1px solid transparent; display:flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap; }
+  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .btn-primary{ background:var(--accent); color:var(--on-accent); box-shadow:var(--shadow); }
+  .btn-primary:hover{ filter:brightness(1.1); }
+  .btn-ghost{ background:transparent; border-color:var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--accent); color:var(--accent); }
+  .btn-sm{ padding:9px 15px; font-size:12.5px; }
 
   /* ---------- Stage ---------- */
   .stage{
-    grid-area:stage; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:24px; min-height:0;
+    grid-area:stage; position:relative; display:flex; flex-direction:column; align-items:center;
+    padding:18px 20px; min-height:0; overflow:hidden;
     background: radial-gradient(ellipse at 50% 0%, var(--surface-2), transparent 62%), var(--bg);
   }
-  .stage-toolbar{ position:absolute; top:16px; left:16px; right:16px; display:flex; justify-content:space-between; align-items:flex-start; pointer-events:none; }
-  .stage-toolbar > *{ pointer-events:auto; }
+  .stage-toolbar{ position:relative; width:100%; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; }
   .stage-toolbar-right{ display:flex; align-items:center; gap:8px; }
-  .stat-pill{ background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:7px 13px; font-size:12px; color:var(--muted); box-shadow:var(--shadow); }
+  .stat-pill{ background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:7px 13px; font-size:12px; color:var(--muted); box-shadow:var(--shadow); white-space:nowrap; }
   .stat-pill b{ color:var(--ink); font-weight:800; }
   .total-pill b{ color:var(--price); }
-  .icon-btn{ width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); box-shadow:var(--shadow); }
+  .icon-btn{ width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); box-shadow:var(--shadow); flex-shrink:0; }
   .icon-btn:hover{ color:var(--price); border-color:var(--price); }
 
-  .ring-wrap{ width:min(440px, 100%); aspect-ratio:1/1; position:relative; display:flex; align-items:center; justify-content:center; }
+  .ring-wrap{ flex:1; width:100%; min-height:0; position:relative; margin-top:6px; }
   .ring-inner{ position:relative; width:100%; height:100%; }
   .ring-guide{ position:absolute; top:50%; left:50%; border:1.5px dashed var(--line); border-radius:50%; transform:translate(-50%,-50%); transition:width .25s ease, height .25s ease; }
   .placed-bead{
@@ -187,56 +111,95 @@
   .placed-bead:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
   .empty-hint{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; color:var(--muted); font-size:13px; width:190px; }
   .empty-hint .display{ font-size:16px; font-weight:700; color:var(--ink); margin-bottom:4px; }
-  .ring-tip{ margin-top:14px; font-size:12px; color:var(--muted); text-align:center; min-height:16px; }
+  .ring-tip{ margin-top:6px; font-size:12px; color:var(--muted); text-align:center; min-height:16px; flex-shrink:0; }
 
-  .zoom-row{ margin-top:10px; display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 14px; box-shadow:var(--shadow); }
+  .zoom-row{ margin-top:4px; margin-bottom:2px; display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 14px; box-shadow:var(--shadow); flex-shrink:0; }
   .zoom-row input[type=range]{ width:110px; accent-color:var(--accent); }
   .zoom-row button{ width:26px; height:26px; border-radius:50%; border:1px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer; font-size:14px; line-height:1; }
   .zoom-row span{ font-size:11.5px; color:var(--muted); width:38px; text-align:center; }
 
-  /* ---------- Summary rail ---------- */
-  .rail-summary{ grid-area:summary; border-left:1px solid var(--line); background:var(--surface); display:flex; flex-direction:column; min-height:0; max-height:calc(100vh - 61px); }
-  .summary-scroll{ flex:1; overflow-y:auto; padding:16px; }
-  .code-box{ margin-bottom:16px; }
-  .code-box label{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); display:block; margin-bottom:6px; }
-  .code-row{ display:flex; gap:6px; }
-  .code-row input{ flex:1; min-width:0; border:1px solid var(--line); border-radius:9px; padding:8px 9px; background:var(--bg); color:var(--ink); font-size:12px; font-family:ui-monospace, monospace; }
-  .code-row button{ border:none; background:var(--accent); color:var(--on-accent); border-radius:9px; width:34px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-  .code-msg{ font-size:11.5px; margin-top:5px; min-height:14px; }
-  .code-msg.ok{ color:var(--good); } .code-msg.err{ color:var(--price); }
+  /* ---------- Bottom catalog bar ---------- */
+  .rail-catalog{
+    grid-area:catalog;
+    display:flex;
+    border-top:1px solid var(--line);
+    background:var(--surface);
+    height: calc(var(--card-h) * 2.2);
+    flex-shrink:0;
+  }
+  .fam-collist{
+    width:150px; flex-shrink:0;
+    display:flex; flex-direction:column; gap:6px;
+    padding:10px; overflow-y:auto;
+    border-right:1px solid var(--line);
+  }
+  .fam-bar{
+    width:100%; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; gap:8px;
+    border:none; border-radius:10px; padding:11px 12px; font-size:12.5px; font-weight:700; cursor:pointer;
+    transition:filter .12s, outline-color .12s;
+  }
+  .fam-bar:hover{ filter:brightness(1.07); }
+  .fam-bar .fam-count{ font-weight:600; opacity:.85; font-size:11px; }
+  .fam-bar.active{ outline:2px solid var(--ink); outline-offset:2px; }
 
-  .wrist-card{ background:var(--surface-2); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
-  .wrist-card .lbl{ font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
-  .wrist-card .val{ font-family:"DM Sans"; font-size:19px; font-weight:800; }
+  .fam-beads{
+    flex:1; min-width:0; overflow-y:auto; overflow-x:hidden;
+    padding:10px 12px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:10px;
+  }
+  .bead-card{
+    position:relative; box-sizing:border-box;
+    border:1px solid var(--line); background:var(--bg); border-radius:14px;
+    padding:10px 8px 8px; cursor:pointer; text-align:center; overflow:hidden;
+    height:var(--card-h); flex:1 1 108px; max-width:150px;
+    display:flex; flex-direction:column;
+    transition:transform .1s, border-color .12s, box-shadow .12s;
+  }
+  .bead-card:hover{ border-color:var(--accent); transform:translateY(-1px); box-shadow:var(--shadow); }
+  .bead-card:active{ transform:translateY(0); }
+  .info-btn{
+    position:absolute; top:6px; right:6px; width:19px; height:19px; border-radius:50%;
+    border:1px solid var(--line); background:var(--surface); color:var(--muted);
+    font-size:11px; font-weight:800; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    opacity:1; transition:opacity .15s ease, border-color .12s, color .12s;
+  }
+  .info-btn:hover{ border-color:var(--accent); color:var(--accent); }
+  @media (hover:hover) and (pointer:fine){
+    .info-btn{ opacity:0; }
+    .bead-card:hover .info-btn,
+    .bead-card:focus-within .info-btn,
+    .info-btn:focus-visible{ opacity:1; }
+  }
 
-  .overview-card{ background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px; }
-  .ov-count-row{ display:flex; align-items:baseline; gap:6px; margin-bottom:10px; }
-  .ov-count{ font-family:"DM Sans"; font-size:26px; font-weight:800; }
-  .ov-count-lbl{ font-size:12.5px; color:var(--muted); }
-  .ov-swatches{ display:flex; flex-wrap:wrap; gap:6px; }
-  .ov-dot{ width:22px; height:22px; border-radius:50%; box-shadow: inset 0 -2px 4px rgba(0,0,0,.2), inset 0 2px 2px rgba(255,255,255,.35); cursor:default; }
-  .ov-empty{ font-size:12.5px; color:var(--muted); }
+  .bead-swatch{
+    width:40px; height:40px; margin:2px auto 7px; flex-shrink:0;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,.18), inset 0 3px 5px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.15);
+  }
+  .bead-swatch.shape-oval{ width:50px; height:29px; }
+  .bead-swatch.shape-cube{ width:34px; height:34px; }
+  .bead-swatch.shape-disc{ width:48px; height:22px; }
+  .bead-swatch.shape-drop{ width:32px; height:40px; }
+  .bead-swatch.shape-tube{ width:54px; height:24px; }
+  .bead-swatch.shape-charm{ width:26px; height:42px; }
 
-  .total-row{ display:flex; justify-content:space-between; align-items:baseline; padding-top:12px; border-top:1.5px solid var(--ink); }
-  .total-row .lbl{ font-size:13px; color:var(--muted); }
-  .total-row .val{ font-family:"DM Sans"; font-size:23px; font-weight:800; color:var(--price); text-shadow:0 0 18px rgba(255,176,32,.28); }
+  .shape-round, .shape-oval, .shape-disc{ border-radius:50%; }
+  .shape-cube{ border-radius:20%; }
+  .shape-tube{ border-radius:40%; }
+  .shape-drop{ border-radius:58% 58% 58% 6%; }
+  .shape-star{ border-radius:0; clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
+  .shape-charm{ box-shadow:none; background:none; }
 
-  .summary-actions{ padding:14px 16px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:8px; }
-  .btn{ border-radius:999px; padding:12px 14px; font-size:13.5px; font-weight:700; cursor:pointer; text-align:center; border:1px solid transparent; display:flex; align-items:center; justify-content:center; gap:8px; }
-  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  .btn-primary{ background:var(--accent); color:var(--on-accent); box-shadow:var(--shadow); }
-  .btn-primary:hover{ filter:brightness(1.1); }
-  .btn-ghost{ background:transparent; border-color:var(--line); color:var(--ink); }
-  .btn-ghost:hover{ border-color:var(--accent); color:var(--accent); }
+  .bead-name{ font-size:11.5px; font-weight:700; line-height:1.25; min-height:2.4em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .bead-mm{ font-size:10px; color:var(--muted); margin-top:3px; }
+  .bead-price{ margin-top:4px; }
+  .bead-price .now{ font-weight:800; font-size:12px; color:var(--price); }
+  .bead-price .was{ font-size:10px; color:var(--muted); text-decoration:line-through; margin-left:4px; }
+  .empty-catalog{ width:100%; padding:20px 10px; text-align:center; color:var(--muted); font-size:13px; }
 
-  .save-card{ margin-top:2px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:12px; color:var(--muted); display:none; }
-  .save-card.show{ display:block; }
-  .save-card strong{ color:var(--ink); }
-
-  /* ---------- Info modal ---------- */
+  /* ---------- Info / checkout modal ---------- */
   .modal-backdrop{ position:fixed; inset:0; background:rgba(20,16,28,.5); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; }
   .modal-backdrop[hidden]{ display:none; }
-  .modal-card{ position:relative; background:var(--surface); border-radius:18px; padding:22px; width:min(420px, 100%); box-shadow:0 24px 60px -20px rgba(0,0,0,.45); }
+  .modal-card{ position:relative; background:var(--surface); border-radius:18px; padding:22px; width:min(420px, 100%); box-shadow:0 24px 60px -20px rgba(0,0,0,.45); max-height:90vh; overflow-y:auto; }
   .modal-close{ position:absolute; top:12px; right:12px; width:28px; height:28px; border-radius:50%; border:1px solid var(--line); background:var(--bg); color:var(--muted); font-size:16px; cursor:pointer; }
   .modal-card h3{ font-size:19px; font-weight:800; margin:0 0 2px; padding-right:24px; }
   .modal-sub{ font-size:12.5px; color:var(--muted); margin:0 0 16px; }
@@ -254,20 +217,21 @@
 
   /* ---------- Mobile ---------- */
   @media (max-width: 860px){
-    /* Canvas-first: the bracelet is the hero, taking most of the first screen, with live count/
-       total/clear floating right on top of it — then catalog and summary sit below to scroll into.
-       (Matches how bead-designer apps in this space actually behave on phones.) */
-    .app{ grid-template-areas: "top" "stage" "catalog" "summary"; grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
-    .topbar{ flex-wrap:wrap; row-gap:8px; }
-    .topbar .note{ display:none; }
-    .title-field{ flex:1 1 100%; }
-    .rail-catalog, .rail-summary{ max-height:none; border:none; border-top:1px solid var(--line); }
-    .stage{ min-height:min(92vw, 560px); padding:16px; border-bottom:1px solid var(--line); }
-    .stage-toolbar-right{ flex-direction:column; align-items:flex-end; gap:6px; }
-    /* Touch targets grow a bit on mobile — the "?" is always visible here (no hover), so it must be easy to tap. */
-    .info-btn{ width:25px; height:25px; font-size:12.5px; }
-    .icon-btn{ width:38px; height:38px; }
-    .ov-dot{ width:25px; height:25px; }
+    :root{ --card-h: 122px; }
+    .topbar{ padding:10px 14px; gap:8px; }
+    .brand-logo{ height:26px; }
+    .title-field input{ font-size:15px; }
+    .btn{ padding:9px 13px; font-size:12px; }
+    .stage{ padding:12px 14px; }
+    .stat-pill{ font-size:11px; padding:6px 10px; }
+    .icon-btn{ width:34px; height:34px; }
+    .zoom-row{ padding:5px 6px 5px 12px; gap:8px; }
+    .zoom-row input[type=range]{ width:80px; }
+    .fam-collist{ width:100px; padding:8px 6px; gap:5px; }
+    .fam-bar{ padding:9px 8px; font-size:11px; }
+    .fam-beads{ padding:8px; gap:8px; }
+    .bead-swatch{ width:34px; height:34px; margin:1px auto 5px; }
+    .bead-name{ font-size:10.5px; }
   }
 </style>
 </head>
@@ -281,23 +245,15 @@
     <div class="title-field">
       <input id="designTitle" type="text" value="Chưa đặt tên thiết kế" maxlength="60" aria-label="Tên thiết kế">
     </div>
-    <div class="note">Hạt là mẫu dựng bằng màu — sẽ thay bằng ảnh chụp thật sau.</div>
-  </header>
-
-  <aside class="rail-catalog">
-    <div class="rail-head">
-      <h2>Lọc theo loại hạt</h2>
-      <div class="search">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="searchInput" type="text" placeholder="Tìm tên hạt…" aria-label="Tìm hạt">
-      </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" id="inspireBtn" title="Gợi ý phối màu ngẫu nhiên">Gợi ý mẫu</button>
+      <button class="btn btn-primary btn-sm" id="checkoutBtn">Thanh toán</button>
     </div>
-    <div class="fam-list" id="famList"></div>
-  </aside>
+  </header>
 
   <main class="stage">
     <div class="stage-toolbar">
-      <div class="stat-pill"><b id="pillCount">0</b> hạt trên chuỗi</div>
+      <div class="stat-pill">Chu vi ước tính <b id="wristVal" class="tnum">— cm</b></div>
       <div class="stage-toolbar-right">
         <div class="stat-pill total-pill">Tổng <b id="pillTotal" class="tnum">0 đ</b></div>
         <button class="icon-btn" id="clearBtn" title="Xoá hết hạt trên chuỗi" aria-label="Xoá hết">
@@ -310,7 +266,7 @@
         <div class="ring-guide" id="ringGuide"></div>
         <div class="empty-hint" id="emptyHint">
           <div class="display">Chuỗi trống</div>
-          Bấm vào 1 viên hạt bên trái để bắt đầu xâu chuỗi
+          Bấm vào 1 viên hạt bên dưới để bắt đầu xâu chuỗi
         </div>
       </div>
     </div>
@@ -323,46 +279,9 @@
     </div>
   </main>
 
-  <aside class="rail-summary">
-    <div class="summary-scroll">
-      <div class="code-box">
-        <label for="codeInput">Dán mã thiết kế</label>
-        <div class="code-row">
-          <input id="codeInput" type="text" placeholder="Dán mã đã sao chép trước đó…">
-          <button id="loadCodeBtn" title="Tải thiết kế từ mã" aria-label="Tải thiết kế">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </button>
-        </div>
-        <div class="code-msg" id="codeMsg"></div>
-      </div>
-
-      <div class="wrist-card">
-        <div>
-          <div class="lbl">Chu vi ước tính</div>
-          <div class="val tnum" id="wristVal">— cm</div>
-        </div>
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".5"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/></svg>
-      </div>
-
-      <div class="overview-card">
-        <div class="ov-count-row">
-          <span class="ov-count tnum" id="ovCount">0</span>
-          <span class="ov-count-lbl">hạt trên chuỗi</span>
-        </div>
-        <div class="ov-swatches" id="overviewSwatches"></div>
-        <div class="ov-empty" id="ovEmpty">Chưa có hạt nào được chọn.</div>
-      </div>
-
-      <div class="total-row">
-        <span class="lbl">Tổng cộng</span>
-        <span class="val tnum" id="totalVal">0 đ</span>
-      </div>
-    </div>
-    <div class="summary-actions">
-      <button class="btn btn-ghost" id="inspireBtn">✦ Gợi ý phối ngẫu nhiên</button>
-      <button class="btn btn-primary" id="saveBtn">Lưu &amp; lấy mã thiết kế</button>
-      <div class="save-card" id="saveCard"></div>
-    </div>
+  <aside class="rail-catalog">
+    <div class="fam-collist" id="famList"></div>
+    <div class="fam-beads" id="famBeadsGrid"></div>
   </aside>
 </div>
 
@@ -482,7 +401,7 @@
       '</svg>';
   }
   // Applies a catalog item's visual to a swatch/placed-bead/gallery element — gradient sphere for
-  // regular beads, an SVG glyph for charms. Reused across all 3 render contexts so they stay in sync.
+  // regular beads, an SVG glyph for charms. Reused across all render contexts so they stay in sync.
   function applyBeadVisual(el, c){
     if(c.shape === "charm"){
       el.style.background = "none";
@@ -494,12 +413,12 @@
   }
 
   // ---------- State ----------
-  var searchQ = "";
   var ring = [];       // array of {uid, id}
   var nextUid = 1;
   var beadEls = {};    // uid -> DOM element (stable across renders, required for smooth drag)
   var userScale = 1;
   var dragState = null;
+  var activeFam = null;
 
   var PX_PER_MM = 5.6;
   var MIN_R = 72, MAX_R = 188, DEFAULT_R = 108;
@@ -541,75 +460,51 @@
     return { r:r, items:items };
   }
 
-  // ---------- Family accordion (catalog) ----------
-  // Each color is its own collapsed bar by default; tapping the arrow reveals that color's
-  // beads inline underneath it. Independent toggles (not a single-open accordion) so more than
-  // one color can stay open at once for comparing.
+  // ---------- Family selector (bottom bar, left column) ----------
+  // Colors are a flat single-select list; picking one shows that color's beads in the
+  // grid to its right, instead of an accordion — the bottom bar is too short to expand in place.
   var famList = document.getElementById("famList");
-  var openFamilies = {};   // famId -> bool, manual expand/collapse state
-  var famSectionEls = {};  // famId -> {section, bar, panel, grid}
+  var famBeadsGrid = document.getElementById("famBeadsGrid");
+  var famBarEls = {};
 
   FAMILIES.forEach(function(f){
-    var section = document.createElement("div");
-    section.className = "fam-section";
-
     var bar = document.createElement("button");
     bar.type = "button";
     bar.className = "fam-bar";
-    bar.setAttribute("aria-expanded", "false");
+    bar.setAttribute("aria-pressed", "false");
     // "Trắng" would be near-invisible on the page's own light background at its true bead tone,
     // so the bar itself (not the bead gradient elsewhere) gets pure white + a thin dark edge.
     var barBg = f.id === "trang" ? "#ffffff" : f.dark;
     bar.style.background = barBg;
     bar.style.color = contrastText(barBg);
     if(f.id === "trang"){ bar.style.border = "1.5px solid #1a1a1a"; }
-    bar.innerHTML =
-      '<span>' + f.label + '</span>' +
-      '<span class="fam-count tnum"></span>' +
-      '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m6 9 6 6 6-6"/></svg>';
-
-    var panel = document.createElement("div");
-    panel.className = "fam-panel";
-    panel.dataset.open = "false";
-    var grid = document.createElement("div");
-    grid.className = "catalog-grid";
-    panel.appendChild(grid);
-
-    bar.addEventListener("click", function(){
-      setFamilyOpen(f.id, panel.dataset.open !== "true");
-    });
-
-    section.appendChild(bar);
-    section.appendChild(panel);
-    famList.appendChild(section);
-
-    famSectionEls[f.id] = { section:section, bar:bar, panel:panel, grid:grid };
+    bar.innerHTML = '<span>' + f.label + '</span><span class="fam-count tnum"></span>';
+    bar.addEventListener("click", function(){ selectFamily(f.id); });
+    famList.appendChild(bar);
+    famBarEls[f.id] = bar;
   });
 
   function familyItems(famId){
-    return CATALOG.filter(function(c){
-      if(c.fam !== famId) return false;
-      if(searchQ && c.name.toLowerCase().indexOf(searchQ) === -1) return false;
-      return true;
+    return CATALOG.filter(function(c){ return c.fam === famId; });
+  }
+
+  function selectFamily(famId){
+    activeFam = famId;
+    FAMILIES.forEach(function(f){
+      var isActive = f.id === famId;
+      famBarEls[f.id].classList.toggle("active", isActive);
+      famBarEls[f.id].setAttribute("aria-pressed", isActive ? "true" : "false");
     });
+    renderBeadsGrid();
   }
 
-  function setFamilyOpen(famId, open){
-    openFamilies[famId] = open;
-    var el = famSectionEls[famId];
-    el.panel.dataset.open = open ? "true" : "false";
-    el.bar.setAttribute("aria-expanded", open ? "true" : "false");
-    if(open) renderFamilyGrid(famId);
-  }
-
-  function renderFamilyGrid(famId){
-    var el = famSectionEls[famId];
-    var items = familyItems(famId);
-    el.grid.innerHTML = "";
+  function renderBeadsGrid(){
+    var items = activeFam ? familyItems(activeFam) : [];
+    famBeadsGrid.innerHTML = "";
     if(items.length === 0){
       var e = document.createElement("div");
-      e.className = "empty-catalog"; e.textContent = "Không tìm thấy hạt phù hợp.";
-      el.grid.appendChild(e);
+      e.className = "empty-catalog"; e.textContent = "Chưa có hạt cho màu này.";
+      famBeadsGrid.appendChild(e);
       return;
     }
     items.forEach(function(c){
@@ -627,27 +522,18 @@
       card.querySelector(".info-btn").addEventListener("click", function(ev){ ev.stopPropagation(); openModal(c.id); });
       card.addEventListener("click", function(){ addBead(c.id); });
       card.addEventListener("keydown", function(ev){ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); addBead(c.id); } });
-      el.grid.appendChild(card);
+      famBeadsGrid.appendChild(card);
     });
   }
-
-  var searchInput = document.getElementById("searchInput");
-  searchInput.addEventListener("input", function(){ searchQ = searchInput.value.trim().toLowerCase(); renderCatalog(); });
 
   function renderCatalog(){
     FAMILIES.forEach(function(f){
       var n = familyItems(f.id).length;
-      var el = famSectionEls[f.id];
-      el.bar.querySelector(".fam-count").textContent = n > 0 ? String(n) : "";
-      el.section.classList.toggle("no-match", n === 0 && !!searchQ);
-      if(openFamilies[f.id]) renderFamilyGrid(f.id);
+      famBarEls[f.id].querySelector(".fam-count").textContent = n > 0 ? String(n) : "";
     });
-    // While searching, auto-open every color that has a match so results show without extra
-    // taps; clearing the search leaves sections exactly as the user last left them.
-    if(searchQ){
-      FAMILIES.forEach(function(f){
-        if(!openFamilies[f.id] && familyItems(f.id).length > 0) setFamilyOpen(f.id, true);
-      });
+    if(!activeFam){
+      var firstWithItems = FAMILIES.filter(function(f){ return familyItems(f.id).length > 0; })[0];
+      if(firstWithItems) selectFamily(firstWithItems.id);
     }
   }
 
@@ -656,7 +542,6 @@
   var ringGuide = document.getElementById("ringGuide");
   var emptyHint = document.getElementById("emptyHint");
   var ringTip = document.getElementById("ringTip");
-  var pillCount = document.getElementById("pillCount");
   var pillTotal = document.getElementById("pillTotal");
   var wristVal = document.getElementById("wristVal");
 
@@ -692,33 +577,10 @@
       if(!seen[uid]){ beadEls[uid].remove(); delete beadEls[uid]; }
     });
 
-    pillCount.textContent = String(ring.length);
     var totalMm = ring.reduce(function(s,b){ return s + CMAP[b.id].mm; }, 0);
     wristVal.textContent = ring.length ? (totalMm/10).toFixed(1) + " cm" : "— cm";
     var totalPrice = ring.reduce(function(s,b){ return s + CMAP[b.id].price; }, 0);
     pillTotal.textContent = money(totalPrice);
-
-    renderOverview();
-    hideSaveCard();
-  }
-
-  function renderOverview(){
-    var counts = {}, order = [];
-    ring.forEach(function(b){ if(!counts[b.id]){ counts[b.id]=0; order.push(b.id); } counts[b.id]++; });
-    var wrap = document.getElementById("overviewSwatches");
-    wrap.innerHTML = "";
-    order.forEach(function(id){
-      var c = CMAP[id];
-      var dot = document.createElement("div");
-      dot.className = "ov-dot";
-      dot.style.background = swatchBackground(c.fam);
-      dot.title = c.name + " × " + counts[id];
-      wrap.appendChild(dot);
-    });
-    document.getElementById("ovEmpty").style.display = order.length ? "none" : "block";
-    document.getElementById("ovCount").textContent = String(ring.length);
-    var total = ring.reduce(function(s,b){ return s + CMAP[b.id].price; }, 0);
-    document.getElementById("totalVal").textContent = money(total);
   }
 
   function applyUserScale(){ ringInner.style.transform = "scale(" + userScale + ")"; }
@@ -786,7 +648,7 @@
     });
   }
 
-  // ---------- Zoom ----------
+  // ---------- Zoom (ring canvas scale — unrelated to the mobile browser input-zoom fix above) ----------
   var zoomRange = document.getElementById("zoomRange");
   var zoomLabel = document.getElementById("zoomLabel");
   function setZoom(v){
@@ -813,51 +675,15 @@
     render();
   });
 
-  // ---------- Save / load design code ----------
-  var saveCard = document.getElementById("saveCard");
-  function hideSaveCard(){ saveCard.classList.remove("show"); saveCard.innerHTML=""; }
-  document.getElementById("saveBtn").addEventListener("click", function(){
-    if(ring.length===0){
-      saveCard.innerHTML = "<strong>Chuỗi đang trống.</strong> Thêm vài viên hạt trước khi lưu.";
-      saveCard.classList.add("show");
-      return;
-    }
-    var payload = { t: document.getElementById("designTitle").value, b: ring.map(function(x){ return x.id; }) };
-    var code = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-    saveCard.innerHTML = '<strong>Đã lưu thiết kế (demo, chỉ lưu trong mã — chưa nối máy chủ).</strong><br>Sao chép mã bên trên phần "Dán mã thiết kế" để nạp lại bất cứ lúc nào.';
-    saveCard.classList.add("show");
-    document.getElementById("codeInput").value = code;
-  });
-
-  var codeMsg = document.getElementById("codeMsg");
-  document.getElementById("loadCodeBtn").addEventListener("click", loadFromCode);
-  document.getElementById("codeInput").addEventListener("keydown", function(e){ if(e.key==="Enter") loadFromCode(); });
-  function loadFromCode(){
-    var raw = document.getElementById("codeInput").value.trim();
-    codeMsg.className = "code-msg"; codeMsg.textContent = "";
-    if(!raw) return;
-    try{
-      var payload = JSON.parse(decodeURIComponent(escape(atob(raw))));
-      if(!payload || !Array.isArray(payload.b)) throw new Error("bad");
-      var valid = payload.b.every(function(id){ return !!CMAP[id]; });
-      if(!valid) throw new Error("bad");
-      ring = payload.b.map(function(id){ return { uid: nextUid++, id: id }; });
-      if(payload.t) document.getElementById("designTitle").value = payload.t;
-      render();
-      codeMsg.textContent = "Đã tải lại thiết kế (" + ring.length + " hạt).";
-      codeMsg.classList.add("ok");
-    }catch(err){
-      codeMsg.textContent = "Mã không hợp lệ — kiểm tra lại rồi thử lại.";
-      codeMsg.classList.add("err");
-    }
-  }
-
-  // ---------- Info modal (placeholder "photos") ----------
+  // ---------- Info / checkout modal ----------
+  var DEFAULT_MODAL_NOTE = "Ảnh minh hoạ dựng bằng màu — sẽ thay bằng ảnh chụp thực tế khi có.";
   var modalBackdrop = document.getElementById("modalBackdrop");
+
   function openModal(id){
     var c = CMAP[id];
     document.getElementById("modalTitle").textContent = c.name;
     document.getElementById("modalSub").textContent = c.mm + "mm · " + FMAP[c.fam].label;
+    document.querySelector(".modal-note").textContent = DEFAULT_MODAL_NOTE;
     var gal = document.getElementById("modalGallery");
     gal.innerHTML = "";
     if(c.shape === "charm"){
@@ -894,6 +720,36 @@
     }
     modalBackdrop.hidden = false;
   }
+
+  function openCheckout(){
+    var titleEl = document.getElementById("modalTitle");
+    var subEl = document.getElementById("modalSub");
+    var gal = document.getElementById("modalGallery");
+    var noteEl = document.querySelector(".modal-note");
+
+    if(ring.length === 0){
+      titleEl.textContent = "Chuỗi đang trống";
+      subEl.textContent = "";
+      gal.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;margin:0;">Hãy chọn ít nhất 1 viên hạt trước khi thanh toán.</p>';
+      noteEl.textContent = "";
+      modalBackdrop.hidden = false;
+      return;
+    }
+    var total = ring.reduce(function(s,b){ return s + CMAP[b.id].price; }, 0);
+    var totalMm = ring.reduce(function(s,b){ return s + CMAP[b.id].mm; }, 0);
+    titleEl.textContent = "Xác nhận đơn hàng";
+    subEl.textContent = document.getElementById("designTitle").value;
+    gal.innerHTML =
+      '<div style="grid-column:1/-1;display:flex;flex-direction:column;gap:10px;">' +
+        '<div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--muted);">Số hạt</span><b>' + ring.length + '</b></div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--muted);">Chu vi ước tính</span><b>' + (totalMm/10).toFixed(1) + ' cm</b></div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:16px;border-top:1px solid var(--line);padding-top:10px;"><span style="color:var(--muted);">Tổng tiền</span><b style="color:var(--price);">' + money(total) + '</b></div>' +
+      '</div>';
+    noteEl.textContent = "Đây là bản xem trước thiết kế — liên hệ Luryque để hoàn tất đặt hàng và thanh toán.";
+    modalBackdrop.hidden = false;
+  }
+  document.getElementById("checkoutBtn").addEventListener("click", openCheckout);
+
   function closeModal(){ modalBackdrop.hidden = true; }
   document.getElementById("modalClose").addEventListener("click", closeModal);
   modalBackdrop.addEventListener("click", function(e){ if(e.target===modalBackdrop) closeModal(); });
