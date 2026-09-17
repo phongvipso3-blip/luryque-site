@@ -22,6 +22,7 @@
     --shadow: 0 1px 2px rgba(22,27,46,.06), 0 10px 26px -14px rgba(22,27,46,.22);
     --card-h: 158px;
     --catalog-mult: 1.2;
+    --beads-pad-y: 10px;
     color-scheme: light;
   }
   /* Fixed light theme by request — intentionally ignores prefers-color-scheme / OS dark mode.
@@ -125,7 +126,10 @@
     display:flex;
     border-top:1px solid var(--line);
     background:var(--surface);
-    height: calc(var(--card-h) * var(--catalog-mult));
+    /* card-h * mult is the usable (padding-excluded) row area; add the fam-beads padding back so
+       the on-screen ratio of catalog-height : card-height actually reads as the intended multiple,
+       instead of the padding silently eating into it and making the peek-of-next-row disappear. */
+    height: calc(var(--card-h) * var(--catalog-mult) + var(--beads-pad-y) * 2);
     flex-shrink:0;
   }
   .fam-collist{
@@ -145,7 +149,7 @@
 
   .fam-beads{
     flex:1; min-width:0; overflow-y:auto; overflow-x:hidden;
-    padding:10px 12px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:10px;
+    padding: var(--beads-pad-y) 12px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:10px;
   }
   .bead-card{
     position:relative; box-sizing:border-box;
@@ -159,7 +163,7 @@
      width/height it hits first), so a flat disc and a tall charm both read as "equally large" —
      only name/mm/price are pinned to the card's bottom edge via .bead-info's margin-top:auto. */
   .bead-img-slot{ width:100%; height:68px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-  .bead-info{ margin-top:auto; }
+  .bead-info{ margin-top:auto; display:flex; flex-direction:column; gap:5px; }
   .bead-card:hover{ border-color:var(--accent); transform:translateY(-1px); box-shadow:var(--shadow); }
   .bead-card:active{ transform:translateY(0); }
   .info-btn{
@@ -170,26 +174,21 @@
     opacity:1; transition:opacity .15s ease, border-color .12s, color .12s;
   }
   .info-btn:hover{ border-color:var(--accent); color:var(--accent); }
-  @media (hover:hover) and (pointer:fine){
-    .info-btn{ opacity:0; }
-    .bead-card:hover .info-btn,
-    .bead-card:focus-within .info-btn,
-    .info-btn:focus-visible{ opacity:1; }
-  }
 
-  /* Each shape keeps its natural aspect ratio but is scaled up until it hits the img-slot's
-     width or height, whichever comes first — so every shape reads as "maximally large" within
-     the same fixed box instead of each having its own arbitrary footprint. */
+  /* Every shape fills the same fixed box: round/cube/star are a full square, and shapes that are
+     naturally flat or elongated (oval/disc/tube, drop/charm) are capped to a moderate 60:42 ratio
+     instead of their true geometry — a true-to-life flat disc would render as a thin sliver next
+     to a round bead, which read as a rendering glitch rather than an intentional flat shape. */
   .bead-swatch{
     width:60px; height:60px; flex-shrink:0;
     box-shadow: inset 0 -4px 8px rgba(0,0,0,.18), inset 0 3px 5px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.15);
   }
-  .bead-swatch.shape-oval{ width:60px; height:35px; }
+  .bead-swatch.shape-oval{ width:60px; height:42px; }
   .bead-swatch.shape-cube{ width:60px; height:60px; }
-  .bead-swatch.shape-disc{ width:60px; height:27px; }
-  .bead-swatch.shape-drop{ width:48px; height:60px; }
-  .bead-swatch.shape-tube{ width:60px; height:27px; }
-  .bead-swatch.shape-charm{ width:37px; height:60px; }
+  .bead-swatch.shape-disc{ width:60px; height:42px; }
+  .bead-swatch.shape-drop{ width:42px; height:60px; }
+  .bead-swatch.shape-tube{ width:60px; height:42px; }
+  .bead-swatch.shape-charm{ width:42px; height:60px; }
 
   .shape-round, .shape-oval, .shape-disc{ border-radius:50%; }
   .shape-cube{ border-radius:20%; }
@@ -198,9 +197,9 @@
   .shape-star{ border-radius:0; clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
   .shape-charm{ box-shadow:none; background:none; }
 
-  .bead-name{ font-size:11.5px; font-weight:700; line-height:1.25; min-height:2.4em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .bead-mm{ font-size:10px; color:var(--muted); margin-top:3px; }
-  .bead-price{ margin-top:4px; }
+  .bead-name{ font-size:11.5px; font-weight:700; line-height:1.25; min-height:2.5em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .bead-mm{ font-size:10px; color:var(--muted); line-height:1.15; }
+  .bead-price{ line-height:1.15; }
   .bead-price .now{ font-weight:800; font-size:12px; color:var(--price); }
   .bead-price .was{ font-size:10px; color:var(--muted); text-decoration:line-through; margin-left:4px; }
   .empty-catalog{ width:100%; padding:20px 10px; text-align:center; color:var(--muted); font-size:13px; }
@@ -226,7 +225,7 @@
 
   /* ---------- Mobile ---------- */
   @media (max-width: 860px){
-    :root{ --card-h: 122px; --catalog-mult: 2.2; }
+    :root{ --card-h: 122px; --catalog-mult: 2.2; --beads-pad-y: 8px; }
     .topbar{ padding:10px 14px; gap:8px; }
     .brand-logo{ height:26px; }
     .title-field input{ font-size:15px; }
@@ -241,12 +240,12 @@
     .fam-beads{ padding:8px; gap:8px; }
     .bead-img-slot{ height:48px; }
     .bead-swatch{ width:42px; height:42px; }
-    .bead-swatch.shape-oval{ width:42px; height:24px; }
+    .bead-swatch.shape-oval{ width:42px; height:30px; }
     .bead-swatch.shape-cube{ width:42px; height:42px; }
-    .bead-swatch.shape-disc{ width:42px; height:19px; }
-    .bead-swatch.shape-drop{ width:34px; height:42px; }
-    .bead-swatch.shape-tube{ width:42px; height:19px; }
-    .bead-swatch.shape-charm{ width:26px; height:42px; }
+    .bead-swatch.shape-disc{ width:42px; height:30px; }
+    .bead-swatch.shape-drop{ width:30px; height:42px; }
+    .bead-swatch.shape-tube{ width:42px; height:30px; }
+    .bead-swatch.shape-charm{ width:30px; height:42px; }
     .bead-name{ font-size:10.5px; }
   }
 </style>
