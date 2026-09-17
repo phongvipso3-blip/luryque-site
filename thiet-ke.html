@@ -100,7 +100,7 @@
   .icon-btn{ width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); box-shadow:var(--shadow); flex-shrink:0; }
   .icon-btn:hover{ color:var(--price); border-color:var(--price); }
 
-  .ring-wrap{ flex:1; width:100%; min-height:0; position:relative; margin-top:6px; }
+  .ring-wrap{ flex:1; width:100%; min-height:0; position:relative; margin-top:6px; touch-action:none; }
   .ring-inner{ position:relative; width:100%; height:100%; }
   .ring-guide{ position:absolute; top:50%; left:50%; border:1.5px dashed var(--line); border-radius:50%; transform:translate(-50%,-50%); transition:width .25s ease, height .25s ease; }
   .placed-bead{
@@ -115,11 +115,6 @@
   .empty-hint{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; color:var(--muted); font-size:13px; width:190px; }
   .empty-hint .display{ font-size:16px; font-weight:700; color:var(--ink); margin-bottom:4px; }
   .ring-tip{ margin-top:6px; font-size:12px; color:var(--muted); text-align:center; min-height:16px; flex-shrink:0; }
-
-  .zoom-row{ margin-top:4px; margin-bottom:2px; display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 14px; box-shadow:var(--shadow); flex-shrink:0; }
-  .zoom-row input[type=range]{ width:110px; accent-color:var(--accent); }
-  .zoom-row button{ width:26px; height:26px; border-radius:50%; border:1px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer; font-size:14px; line-height:1; }
-  .zoom-row span{ font-size:11.5px; color:var(--muted); width:38px; text-align:center; }
 
   /* ---------- Bottom catalog bar ---------- */
   .rail-catalog{
@@ -234,8 +229,6 @@
     .stage{ padding:12px 14px; }
     .stat-pill{ font-size:11px; padding:6px 10px; }
     .icon-btn{ width:34px; height:34px; }
-    .zoom-row{ padding:5px 6px 5px 12px; gap:8px; }
-    .zoom-row input[type=range]{ width:80px; }
     .fam-collist{ width:100px; padding:8px 6px; gap:5px; }
     .fam-bar{ padding:9px 8px; font-size:11px; }
     .fam-beads{ padding:8px; gap:8px; }
@@ -282,12 +275,6 @@
       </div>
     </div>
     <div class="ring-tip" id="ringTip"></div>
-    <div class="zoom-row">
-      <button id="zoomOut" aria-label="Thu nhỏ">–</button>
-      <input id="zoomRange" type="range" min="70" max="160" value="100" step="5" aria-label="Mức thu phóng">
-      <button id="zoomIn" aria-label="Phóng to">+</button>
-      <span id="zoomLabel" class="tnum">100%</span>
-    </div>
   </main>
 
   <aside class="rail-catalog">
@@ -676,17 +663,42 @@
     });
   }
 
-  // ---------- Zoom (ring canvas scale — unrelated to the mobile browser input-zoom fix above) ----------
-  var zoomRange = document.getElementById("zoomRange");
-  var zoomLabel = document.getElementById("zoomLabel");
-  function setZoom(v){
-    v = Math.max(70, Math.min(160, v));
-    zoomRange.value = v; userScale = v/100; zoomLabel.textContent = v + "%";
+  // ---------- Zoom (directly on the ring — no visible control) ----------
+  var MIN_SCALE = 0.7, MAX_SCALE = 1.6;
+  function clampScale(v){ return Math.max(MIN_SCALE, Math.min(MAX_SCALE, v)); }
+  var ringWrap = document.querySelector(".ring-wrap");
+
+  // Mouse wheel AND laptop trackpad both fire as "wheel" — a trackpad pinch adds ctrlKey with a
+  // small deltaY per event, a mouse wheel fires larger discrete steps; exponential scaling makes
+  // both feel equally smooth regardless of that difference in granularity.
+  ringWrap.addEventListener("wheel", function(e){
+    e.preventDefault();
+    var factor = Math.exp(-e.deltaY * 0.0018);
+    userScale = clampScale(userScale * factor);
     applyUserScale();
-  }
-  zoomRange.addEventListener("input", function(){ setZoom(parseInt(zoomRange.value,10)); });
-  document.getElementById("zoomIn").addEventListener("click", function(){ setZoom(parseInt(zoomRange.value,10)+15); });
-  document.getElementById("zoomOut").addEventListener("click", function(){ setZoom(parseInt(zoomRange.value,10)-15); });
+  }, { passive: false });
+
+  // Two-finger touch pinch — phones/tablets have no wheel event, and this was the only zoom
+  // control mobile had, so pinch replaces it there.
+  var pinchStartDist = null, pinchStartScale = 1;
+  function touchDist(t0, t1){ return Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY); }
+  ringWrap.addEventListener("touchstart", function(e){
+    if(e.touches.length === 2){
+      pinchStartDist = touchDist(e.touches[0], e.touches[1]);
+      pinchStartScale = userScale;
+    }
+  }, { passive: true });
+  ringWrap.addEventListener("touchmove", function(e){
+    if(e.touches.length === 2 && pinchStartDist){
+      e.preventDefault();
+      var dist = touchDist(e.touches[0], e.touches[1]);
+      userScale = clampScale(pinchStartScale * (dist / pinchStartDist));
+      applyUserScale();
+    }
+  }, { passive: false });
+  ringWrap.addEventListener("touchend", function(e){
+    if(e.touches.length < 2) pinchStartDist = null;
+  });
 
   // ---------- Inspire ----------
   document.getElementById("inspireBtn").addEventListener("click", function(){
